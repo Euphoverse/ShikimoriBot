@@ -25,8 +25,34 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from shiki.core import bot
+
+import lightbulb
+from shiki.utils import tools
+import hikari
+import lightbulb
+import dotenv
+import os
+import logging
 
 
-if __name__ == '__main__':
+cfg = tools.load_file('config')
+
+dotenv.load_dotenv()
+bot = lightbulb.BotApp(
+    os.environ['test-token'] if cfg['test-mode'] else os.environ['prod-token'])
+
+
+for folder in os.listdir('./shiki/extensions'):
+    for plugin in filter(lambda x: x.endswith('.py'), os.listdir('./shiki/extensions/%s' % folder)):
+        logging.log(logging.INFO, 'Loaded plugin shiki.%s.%s' %
+                    (folder, plugin[:-3]))
+        bot.load_extensions('shiki.%s.%s' % (folder, plugin[:-3]))
+
+
+def run() -> None:
+    if os.name != 'nt':
+        import uvloop
+
+        uvloop.install()
+
     bot.run()
