@@ -65,13 +65,13 @@ def get_mods(guild: Guild) -> list:
 
 def load_file(name: str) -> dict | list | None:
     '''Loads json file with passed name from ./settings folder'''
-    if os.isfile('./settings/%s.json' % name):
+    if os.path.isfile('./settings/%s.json' % name):
         with open('./settings/%s.json' % name, 'r') as f:
             return json.load(f)
 
 
 def update_file(name: str, data: dict | list) -> None:
     '''Updates json file with passed name from ./settings folder'''
-    if os.isfile('./settings/%s.json' % name):
+    if os.path.isfile('./settings/%s.json' % name):
         with open('./settings/%s.json' % name, 'r') as f:
             return json.dump(data, f)

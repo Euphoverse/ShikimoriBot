@@ -1,3 +1,33 @@
 {
-    "test-mode": true
+    "mode": "test",
+    "db_defaults": {
+        "users": {
+            "level": 0,
+            "xp": 0,
+            "money": 0,
+            "mod": null,
+            "meta": {
+                "badge": null,
+                "sticker": null
+            },
+            "items": {
+                "badges": [],
+                "stickers": []
+            },
+            "sponsor": null,
+            "donated": 0
+        }
+    },
+    "test": {
+        "guild": 982833157411848223,
+        "channels": {
+            "general": 982833157952897076
+        }
+    },
+    "prod": {
+        "guild": 981818711608524830,
+        "channels": {
+            "general": 1001711915761930320
+        }
+    }
 }

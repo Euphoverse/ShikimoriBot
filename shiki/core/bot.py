@@ -39,14 +39,13 @@ cfg = tools.load_file('config')
 
 dotenv.load_dotenv()
 bot = lightbulb.BotApp(
-    os.environ['test-token'] if cfg['test-mode'] else os.environ['prod-token'])
-
+    os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'])
+if cfg['mode'] == 'test':
+    logging.warning('Bot is running in test mode!')
 
 for folder in os.listdir('./shiki/extensions'):
     for plugin in filter(lambda x: x.endswith('.py'), os.listdir('./shiki/extensions/%s' % folder)):
-        logging.log(logging.INFO, 'Loaded plugin shiki.%s.%s' %
-                    (folder, plugin[:-3]))
-        bot.load_extensions('shiki.%s.%s' % (folder, plugin[:-3]))
+        bot.load_extensions('shiki.extensions.%s.%s' % (folder, plugin[:-3]))
 
 
 def run() -> None:
