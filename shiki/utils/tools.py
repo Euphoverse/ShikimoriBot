@@ -27,9 +27,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
-from hikari import Embed, File, Guild
+from typing import List
+from hikari import Embed, File, Guild, Member
 import os
 from random import choice
+from shiki.utils import db
+
+
+users = db.connect().get_database('shiki').get_collection('users')
 
 
 def calc_xp(lvl):
@@ -53,12 +58,12 @@ def calc_coins(lvl: int) -> int:
     return 80
 
 
-def get_mod_users(mod_id: int) -> list:
+def get_mod_users(mod_id: int) -> List[int]:
     '''Returns list of users, who were assigned to mod with passed mod_id'''
-    raise NotImplemented
+    return [doc['_id'] for doc in db.find_document(users, {}, True) if doc['mod'] == mod_id]
 
 
-def get_mods(guild: Guild) -> list:
+def get_mods(guild: Guild) -> List[Member]:
     '''Returns list of all mods on the server (users with specific roles)'''
     raise NotImplemented
 

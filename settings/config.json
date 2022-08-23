@@ -18,16 +18,33 @@
             "donated": 0
         }
     },
+    "mod_roles": [
+        "helper",
+        "mod",
+        "sr_mod"
+    ],
     "test": {
-        "guild": 982833157411848223,
+        "guild": 1011596264523178017,
         "channels": {
             "general": 982833157952897076
+        },
+        "roles": {
+            "helper": 1011596264917454862,
+            "mod": 1011596264917454863,
+            "sr_mod": 1011596264917454867,
+            "admin": 1011596264967778309
         }
     },
     "prod": {
         "guild": 981818711608524830,
         "channels": {
             "general": 1001711915761930320
+        },
+        "roles": {
+            "helper": null,
+            "mod": null,
+            "sr_mod": null,
+            "admin": null
         }
     }
 }
