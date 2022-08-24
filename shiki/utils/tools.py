@@ -63,11 +63,6 @@ def get_mod_users(mod_id: int) -> List[int]:
     return [doc['_id'] for doc in db.find_document(users, {}, True) if doc['mod'] == mod_id]
 
 
-def get_mods(guild: Guild) -> List[Member]:
-    '''Returns list of all mods on the server (users with specific roles)'''
-    raise NotImplemented
-
-
 def load_file(name: str) -> dict | list | None:
     '''Loads json file with passed name from ./settings folder'''
     if os.path.isfile('./settings/%s.json' % name):
@@ -80,3 +75,17 @@ def update_file(name: str, data: dict | list) -> None:
     if os.path.isfile('./settings/%s.json' % name):
         with open('./settings/%s.json' % name, 'r') as f:
             return json.dump(data, f)
+
+
+cfg = load_file('config')
+
+
+def get_mods(guild: Guild) -> List[Member]:
+    '''Returns list of all mods on the server (users with specific roles)'''
+    mod_roles = [cfg[cfg['mode']]['roles'][id] for id in cfg['mod_roles']]
+    mods = []
+    for m in guild.get_members():
+        member = guild.get_member(m)
+        if set(member.role_ids).intersection(mod_roles) != set():
+            mods.append(member)
+    return mods

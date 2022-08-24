@@ -39,7 +39,8 @@ cfg = tools.load_file('config')
 
 dotenv.load_dotenv()
 bot = lightbulb.BotApp(
-    os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'])
+    os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'],
+    intents=hikari.Intents.ALL)
 if cfg['mode'] == 'test':
     logging.warning('Bot is running in test mode!')
 
