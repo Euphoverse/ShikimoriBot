@@ -56,6 +56,43 @@ async def ready_listener(_):
             await assign_mod(member)
 
 
+@plugin.listener(hikari.MemberCreateEvent)
+async def member_join(event: hikari.MemberCreateEvent):
+    if event.member.guild_id != cfg[cfg['mode']]['guild']:
+        return
+
+    if db.find_document(users, {'_id': event.member.id}) is None:
+        db.insert_document(
+            users, {'_id': event.member.id, **cfg['db_defaults']['users']})
+        await assign_mod(event.member)
+        await event.member.get_guild()\
+            .get_channel(cfg[cfg['mode']]['channels']['general'])\
+            .send(f"Хей, %s! Добро пожаловать на наш сервер! Твоим модератором будет %s. Он(а) поможет тебе освоиться на сервере. Также по всем вопросам и за помощью обращайся только к этому модератору <3" % (
+                event.member.mention,
+                event.member.get_guild()
+                .get_member(db.find_document(users, {'_id': event.member.id})['mod'])
+                .mention
+            ))
+    # Re-assigning moderator
+    await assign_mod(event.member)
+    await event.member.get_guild()\
+        .get_channel(cfg[cfg['mode']]['channels']['general'])\
+        .send(f"С возвращением на наш сервер, %s! Твоим новым модератором будет %s, всё остальное ты знаешь :>" % (
+            event.member.mention,
+            event.member.get_guild()
+            .get_member(db.find_document(users, {'_id': event.member.id})['mod'])
+            .mention
+        ))
+
+
+@plugin.listener(hikari.MemberDeleteEvent)
+async def member_quit(event: hikari.MemberDeleteEvent):
+    if event.old_member.guild_id != cfg[cfg['mode']]['guild']:
+        return
+
+    db.update_document(users, {'_id': event.old_member.id}, {'mod': None})
+
+
 def load(bot):
     bot.add_plugin(plugin)
 
