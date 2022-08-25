@@ -31,3 +31,11 @@ __version__ = "1.0.0a"
 __description__ = "Discord bot coded specially for Euphoverse Discord server"
 __url__ = "https://github.com/JustLian/ShikimoriBot"
 __license__ = "BSD-3-Clause"
+
+
+class Colors:
+    from hikari import Color
+    SUCCESS = Color.from_hex_code('#f4c0e6')
+    ERROR = Color.from_hex_code('#936cab')
+    WARNING = Color.from_hex_code('#a14e7e')
+    WAIT = Color.from_hex_code('#c0c1cb')
