@@ -15,7 +15,8 @@
                 "stickers": []
             },
             "sponsor": null,
-            "donated": 0
+            "donated": 0,
+            "invites": 0
         }
     },
     "mod_roles": [

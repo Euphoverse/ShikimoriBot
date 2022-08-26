@@ -48,12 +48,20 @@ async def ready_listener(_):
     async for member in plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild']):
         if member.is_bot:
             continue
-        if db.find_document(users, {'_id': member.id}) is None:
+        data = db.find_document(users, {'_id': member.id})
+        if data is None:
             logging.warning(
-                f'creating document of user {member.id} ({member.username}#{member.discriminator})')
+                f'creating document of user {member.id} ({member})')
             db.insert_document(
                 users, {'_id': member.id, **cfg['db_defaults']['users']})
             await assign_mod(member)
+        else:
+            for key in cfg['db_defaults']['users'].keys():
+                if key not in data:
+                    logging.warning(
+                        'missing key "%s" in document of user %s (%s)' % (key, str(member), str(member.id)))
+                    db.update_document(users, {'_id': member.id}, {
+                                       key: cfg['db_defaults']['users'][key]})
 
 
 @plugin.listener(hikari.MemberCreateEvent)

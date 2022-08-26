@@ -39,3 +39,4 @@ class Colors:
     ERROR = Color.from_hex_code('#936cab')
     WARNING = Color.from_hex_code('#a14e7e')
     WAIT = Color.from_hex_code('#c0c1cb')
+    SPONSOR = Color.from_hex_code('#95f9e3')
