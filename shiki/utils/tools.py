@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
-from typing import List
+from typing import Any, List
 from hikari import Embed, File, Guild, Member
 import os
 from random import choice
@@ -91,6 +91,12 @@ def update_data(name: str, data: dict | list) -> None:
     if os.path.isfile(DATA_PATH % name):
         with open(DATA_PATH % name, 'r') as f:
             return json.dump(data, f)
+
+
+def get(iter, **kwargs) -> Any:
+    for item in iter:
+        if all([eval('item.%s' % key) == kwargs[key] for key in kwargs.keys()]):
+            return item
 
 
 cfg = load_file('config')
