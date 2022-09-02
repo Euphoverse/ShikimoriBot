@@ -47,6 +47,7 @@ plugin = lightbulb.Plugin("Misc")
 )
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def misc(ctx: lightbulb.SlashContext) -> None:
+    # Command group /misc
     pass
 
 

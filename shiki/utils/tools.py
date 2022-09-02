@@ -32,6 +32,8 @@ from hikari import Embed, File, Guild, Member
 import os
 from random import choice
 from shiki.utils import db
+SETTINGS_PATH = './settings/%s.json'
+DATA_PATH = './data/%s.json'
 
 
 users = db.connect().get_database('shiki').get_collection('users')
@@ -65,15 +67,29 @@ def get_mod_users(mod_id: int) -> List[int]:
 
 def load_file(name: str) -> dict | list | None:
     '''Loads json file with passed name from ./settings folder'''
-    if os.path.isfile('./settings/%s.json' % name):
-        with open('./settings/%s.json' % name, 'r') as f:
+    if os.path.isfile(SETTINGS_PATH % name):
+        with open(SETTINGS_PATH % name, 'r') as f:
             return json.load(f)
 
 
 def update_file(name: str, data: dict | list) -> None:
     '''Updates json file with passed name from ./settings folder'''
-    if os.path.isfile('./settings/%s.json' % name):
-        with open('./settings/%s.json' % name, 'r') as f:
+    if os.path.isfile(SETTINGS_PATH % name):
+        with open(SETTINGS_PATH % name, 'r') as f:
+            return json.dump(data, f)
+
+
+def load_data(name: str) -> dict | list | None:
+    '''Loads json file with passed named from ./data folder'''
+    if os.path.isfile(DATA_PATH % name):
+        with open(DATA_PATH % name, 'r') as f:
+            return json.load(f)
+
+
+def update_data(name: str, data: dict | list) -> None:
+    '''Updates json file with passed name from ./data folder'''
+    if os.path.isfile(DATA_PATH % name):
+        with open(DATA_PATH % name, 'r') as f:
             return json.dump(data, f)
 
 

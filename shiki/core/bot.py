@@ -55,4 +55,4 @@ def run() -> None:
 
         uvloop.install()
 
-    bot.run()
+    bot.run(activity=hikari.Activity(name='github: JustLian/ShikimoriBot'))
