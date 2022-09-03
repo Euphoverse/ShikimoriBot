@@ -1,3 +1,5 @@
 hikari
 hikari-lightbulb
 python-dotenv
+asyncio
+lightbulb-ext-tungsten

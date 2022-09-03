@@ -1,9 +1,16 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import zoneinfo
 import lightbulb
 import hikari
 from shiki.utils import db, tools
 import shiki
+from .ui.event_selection import EventsMenu
+import aiohttp
 
+
+WAIFUPICS = 'https://api.waifu.pics'
+msk = zoneinfo.ZoneInfo('Europe/Moscow')
+local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 
 cfg = tools.load_file('config')
 users = db.connect().get_database('shiki').get_collection('users')
@@ -82,7 +89,24 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         )
         if check():
             break
-    channel = (await plugin.bot.rest.fetch_invite(event.message.content.split('/')[-1])).channel
+
+    if not event.message.content.startswith('https://discord.gg/'):
+        await ctx.edit_last_response(embed=hikari.Embed(
+            title='Некорректное приглашение',
+            description='Вы отправили некорректное приглашение все приглашения должны начинаться с "https://discord.gg/"',
+            color=shiki.Colors.ERROR
+        ))
+        return
+
+    try:
+        channel = (await plugin.bot.rest.fetch_invite(event.message.content.split('/')[-1])).channel
+    except hikari.NotFoundError:
+        await ctx.edit_last_response(embed=hikari.Embed(
+            title='Неизвестное приглашение',
+            description='Вы отправили нерабочее приглашение',
+            color=shiki.Colors.ERROR
+        ))
+        return
     await event.message.delete()
 
     # Step 4 - Host
@@ -99,6 +123,14 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         )
         if check():
             break
+
+    if len(event.message.user_mentions) == 0:
+        await ctx.edit_last_response(embed=hikari.Embed(
+            title='Ошибка',
+            description='Вы не упомянули ни одного пользователя в вашем сообщении',
+            color=shiki.Colors.ERROR
+        ))
+        return
     host = event.message.user_mentions[list(
         event.message.user_mentions.keys())[0]]
     await event.message.delete()
@@ -131,7 +163,8 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'description': desc,
         'host': host.id,
         'channel': channel.id,
-        'date': event.start_time.strftime(cfg['time_format'])
+        'date': event.start_time.strftime(cfg['time_format']),
+        'link': event_link
     }
     tools.update_data('events', events_data)
 
@@ -145,6 +178,78 @@ async def create(ctx: lightbulb.SlashContext) -> None:
     embed.set_footer(
         'Для изменения даты проведения ивента измените её в настройках ивента')
     await ctx.edit_last_response(embed=embed)
+
+
+async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.ScheduledEvent):
+    async with aiohttp.ClientSession(WAIFUPICS) as s:
+        async with s.get('/sfw/happy') as resp:
+            if resp.status != 200:
+                image_url = None
+            else:
+                image_url = (await resp.json())['url']
+    link = tools.load_data('events')[str(event.id)]['link']
+    date = event.start_time.astimezone(msk)
+    embed = hikari.Embed(
+        title='Ивент %s' % event.name,
+        description='Привет всем! %s в %s по МСК пройдёт ивент %s. Не забудьте подписаться на [уведомления об этом ивенте](%s) если планируете прийти!' % (
+            date.strftime('%d.%m'),
+            date.strftime('%H:%M'),
+            event.name,
+            link
+        ),
+        color=shiki.Colors.ANC_HIGH,
+        timestamp=datetime.now(local_tz)
+    )
+    embed.set_image(image_url)
+    embed.set_footer(str(ctx.user), icon=ctx.user.display_avatar_url.url)
+    await plugin.bot.rest.create_message(
+        cfg[cfg['mode']]['channels']['announcements'],
+        embed=embed
+    )
+    await plugin.bot.rest.create_message(
+        cfg[cfg['mode']]['channels']['announcements'],
+        content='%s %s' % (
+            link,
+            '' if not ctx.options.role else ctx.options.role.mention
+        )
+    )
+    await ctx.edit_last_response(embed=hikari.Embed(
+        title='Готово!',
+        description='Объявление успешно отправлено',
+        color=shiki.Colors.SUCCESS
+    ), components=None)
+
+
+@events.child
+@lightbulb.option(
+    'role',
+    'Роль которую необходимо упомянуть',
+    hikari.Role,
+    required=False,
+    default=None
+)
+@lightbulb.command(
+    'announce',
+    'Создать объявление о запланированном ивенте',
+    inherit_checks=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def announce(ctx: lightbulb.SlashContext):
+    events = await plugin.bot.rest.fetch_scheduled_events(ctx.guild_id)
+    if len(events) == 0:
+        await ctx.respond(embed=hikari.Embed(
+            title='Нет ивентов',
+            description='На этом сервере нет запланированных ивентов',
+            color=shiki.Colors.ERROR
+        ))
+        return
+    embed = hikari.Embed(
+        title='Выберите ивент',
+        color=shiki.Colors.WAIT
+    )
+    menu = EventsMenu(announce_callback, events, ctx)
+    resp = await ctx.respond(embed, components=menu.build())
+    await menu.run(resp)
 
 
 def load(bot):
