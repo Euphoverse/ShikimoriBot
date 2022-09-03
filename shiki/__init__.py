@@ -32,7 +32,11 @@ __description__ = "Discord bot coded specially for Euphoverse Discord server"
 __url__ = "https://github.com/JustLian/ShikimoriBot"
 __license__ = "BSD-3-Clause"
 
+# API urls
+WAIFUPICS = 'https://api.waifu.pics'
 
+
+# Color palette
 class Colors:
     from hikari import Color
     SUCCESS = Color.from_hex_code('#f4c0e6')

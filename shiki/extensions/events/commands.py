@@ -8,7 +8,6 @@ from .ui.event_selection import EventsMenu
 import aiohttp
 
 
-WAIFUPICS = 'https://api.waifu.pics'
 msk = zoneinfo.ZoneInfo('Europe/Moscow')
 local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 
@@ -164,7 +163,8 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'host': host.id,
         'channel': channel.id,
         'date': event.start_time.strftime(cfg['time_format']),
-        'link': event_link
+        'link': event_link,
+        'started': False
     }
     tools.update_data('events', events_data)
 
@@ -181,7 +181,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
 
 
 async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.ScheduledEvent):
-    async with aiohttp.ClientSession(WAIFUPICS) as s:
+    async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
         async with s.get('/sfw/happy') as resp:
             if resp.status != 200:
                 image_url = None
