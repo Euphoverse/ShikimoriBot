@@ -89,7 +89,7 @@ def load_data(name: str) -> dict | list | None:
 def update_data(name: str, data: dict | list) -> None:
     '''Updates json file with passed name from ./data folder'''
     if os.path.isfile(DATA_PATH % name):
-        with open(DATA_PATH % name, 'r') as f:
+        with open(DATA_PATH % name, 'w') as f:
             return json.dump(data, f)
 
 

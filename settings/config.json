@@ -24,10 +24,12 @@
         "mod",
         "sr_mod"
     ],
+    "time_format": "%Y-%m-%dT%H:%M:%S",
     "test": {
         "guild": 982833157411848223,
         "channels": {
-            "general": 982833157952897076
+            "general": 982833157952897076,
+            "mods_only": 1011596265475280919
         },
         "roles": {
             "events_manager": 1011596264917454865,
@@ -40,7 +42,8 @@
     "prod": {
         "guild": 981818711608524830,
         "channels": {
-            "general": 1001711915761930320
+            "general": 1001711915761930320,
+            "mods_only": 981819155462377473
         },
         "roles": {
             "events_manager": 989749982305329152,

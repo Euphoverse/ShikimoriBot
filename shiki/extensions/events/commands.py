@@ -1,8 +1,6 @@
-import asyncio
 from datetime import datetime, timedelta
 import lightbulb
 import hikari
-import logging
 from shiki.utils import db, tools
 import shiki
 
@@ -117,7 +115,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         channel,
         title,
         datetime.now() + timedelta(days=1),
-        description=desc,
+        description=desc + '\n\n Ведущий: %s' % str(host),
         reason='Event created by %s' % str(ctx.user)
     )
 
@@ -125,6 +123,17 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         (await plugin.bot.rest.create_invite(channel, unique=False)).code,
         event.id
     )
+
+    # Saving data to DB
+    events_data = tools.load_data('events')
+    events_data[str(event.id)] = {
+        'title': title,
+        'description': desc,
+        'host': host.id,
+        'channel': channel.id,
+        'date': event.start_time.strftime(cfg['time_format'])
+    }
+    tools.update_data('events', events_data)
 
     embed = hikari.Embed(
         title='Ивент создан',
