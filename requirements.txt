@@ -3,3 +3,4 @@ hikari-lightbulb
 python-dotenv
 asyncio
 lightbulb-ext-tungsten
+pyQiwiP2P
