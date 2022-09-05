@@ -190,7 +190,10 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'description': desc,
         'host': host.id,
         'channel': channel.id,
-        'date': event.start_time.replace(second=0, microsecond=0).strftime(cfg['time_format']),
+        'date': event.start_time
+        .astimezone(zoneinfo.ZoneInfo('Europe/Moscow'))
+        .replace(second=0, microsecond=0)
+        .strftime(cfg['time_format']),
         'link': event_link,
         'started': False
     }
@@ -239,7 +242,8 @@ async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.Scheduled
         content='%s %s' % (
             link,
             '' if not ctx.options.role else ctx.options.role.mention
-        )
+        ),
+        mentions_everyone=True, role_mentions=True
     )
     await ctx.edit_last_response(embed=hikari.Embed(
         title='Готово!',

@@ -29,6 +29,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 import logging
+import zoneinfo
 import lightbulb
 import hikari
 from shiki.utils import db, tools
@@ -68,7 +69,7 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
         embed.set_footer('Автоматическое сообщение',
                          icon=plugin.bot.get_me().display_avatar_url.url)
         embed.set_image(image_url)
-        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], embed=embed)
+        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '@everyone', embed=embed, mentions_everyone=True, role_mentions=True)
         tools.update_data('events', data)
         return
 
@@ -95,7 +96,7 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
         tools.update_data('events', data)
         return
 
-    data[str(e.id)]['date'] = e.start_time.replace(
+    data[str(e.id)]['date'] = e.start_time.astimezone(zoneinfo.ZoneInfo('Europe/Moscow')).replace(
         second=0, microsecond=0).strftime(cfg['time_format'])
     data[str(e.id)]['title'] = e.name
 
@@ -126,9 +127,10 @@ async def event_reminders() -> None:
     guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
     while plugin.bot.is_alive:
         data = tools.load_data('events')
-        now = datetime.now().replace(second=0, microsecond=0)
+        now = datetime.now().astimezone(zoneinfo.ZoneInfo(
+            'Europe/Moscow')).replace(second=0, microsecond=0, tzinfo=None)
         for id in data:
-            date = datetime.strptime(data[id]['date'], data[id]['date'])
+            date = datetime.strptime(data[id]['date'], cfg['time_format'])
 
             # 10 minutes
             if now == date - timedelta(minutes=10):
@@ -144,7 +146,8 @@ async def event_reminders() -> None:
                 await plugin.bot.rest.create_message(
                     cfg[cfg['mode']]['channels']['mods_only'],
                     '<@%s>, ивент %s начнётся через 5 минут' % (
-                        data[id]['host'], data[id]['title'])
+                        data[id]['host'], data[id]['title']),
+                    user_mentions=True
                 )
 
                 # announcements
