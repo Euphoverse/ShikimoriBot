@@ -190,7 +190,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'description': desc,
         'host': host.id,
         'channel': channel.id,
-        'date': event.start_time.strftime(cfg['time_format']),
+        'date': event.start_time.replace(second=0, microsecond=0).strftime(cfg['time_format']),
         'link': event_link,
         'started': False
     }

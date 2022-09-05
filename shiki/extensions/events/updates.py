@@ -26,7 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from datetime import datetime, timezone
+import asyncio
+from datetime import datetime, timedelta, timezone
 import logging
 import lightbulb
 import hikari
@@ -94,7 +95,8 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
         tools.update_data('events', data)
         return
 
-    data[str(e.id)]['date'] = e.start_time.strftime(cfg['time_format'])
+    data[str(e.id)]['date'] = e.start_time.replace(
+        second=0, microsecond=0).strftime(cfg['time_format'])
     data[str(e.id)]['title'] = e.name
 
     tools.update_data('events', data)
@@ -113,6 +115,58 @@ async def delete_listener(event: hikari.ScheduledEventDeleteEvent):
     data = tools.load_data('events')
     data.pop(str(event.event.id))
     tools.update_data('events', data)
+
+
+@plugin.listener(hikari.ShardReadyEvent)
+async def start_loop(_):
+    plugin.bot.create_task(event_reminders())
+
+
+async def event_reminders() -> None:
+    guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
+    while plugin.bot.is_alive:
+        data = tools.load_data('events')
+        now = datetime.now().replace(second=0, microsecond=0)
+        for id in data:
+            date = datetime.strptime(data[id]['date'], data[id]['date'])
+
+            # 10 minutes
+            if now == date - timedelta(minutes=10):
+                await plugin.bot.rest.create_message(
+                    cfg[cfg['mode']]['channels']['mods_only'],
+                    '<@%s>, ивент %s начнётся через 10 минут' % (
+                        data[id]['host'], data[id]['title'])
+                )
+
+            # 5 minutes
+            elif now == date - timedelta(minutes=5):
+                # mods-only
+                await plugin.bot.rest.create_message(
+                    cfg[cfg['mode']]['channels']['mods_only'],
+                    '<@%s>, ивент %s начнётся через 5 минут' % (
+                        data[id]['host'], data[id]['title'])
+                )
+
+                # announcements
+                async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
+                    async with s.get('/sfw/smile') as resp:
+                        if resp.status != 200:
+                            image_url = None
+                        else:
+                            image_url = (await resp.json())['url']
+                embed = hikari.Embed(
+                    title='Ивент %s скоро начнётся' % data[id]['title'],
+                    description='Ивент начнётся через 5 минут! [Информация](%s)' % data[
+                        id]['link'],
+                    color=shiki.Colors.ANC_LOW,
+                    timestamp=datetime.now(local_tz)
+                )
+                embed.set_footer('Автоматическое сообщение',
+                                 icon=plugin.bot.get_me().display_avatar_url.url)
+                embed.set_image(image_url)
+                await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '@everyone', embed=embed, mentions_everyone=True)
+
+        await asyncio.sleep(60)
 
 
 def load(bot):
