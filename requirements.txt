@@ -3,3 +3,4 @@ hikari-lightbulb
 python-dotenv
 asyncio
 lightbulb-ext-tungsten
+git+https://github.com/HyperGH/hikari-miru@feature/modals

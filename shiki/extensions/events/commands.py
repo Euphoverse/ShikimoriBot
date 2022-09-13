@@ -263,7 +263,8 @@ async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.Scheduled
 @lightbulb.command(
     'announce',
     'Создать объявление о запланированном ивенте',
-    inherit_checks=True
+    inherit_checks=True,
+    ephemeral=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def announce(ctx: lightbulb.SlashContext):

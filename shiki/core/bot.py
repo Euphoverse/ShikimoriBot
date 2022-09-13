@@ -33,6 +33,7 @@ import lightbulb
 import dotenv
 import os
 import logging
+import miru
 
 
 cfg = tools.load_file('config')
@@ -54,5 +55,5 @@ def run() -> None:
         import uvloop
 
         uvloop.install()
-
+    miru.load(bot)
     bot.run(activity=hikari.Activity(name='github: JustLian/ShikimoriBot'))
