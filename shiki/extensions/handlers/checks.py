@@ -5,7 +5,7 @@ from shiki.utils import db, tools
 import shiki
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 plugin = lightbulb.Plugin("HandlersChecks")
 
 

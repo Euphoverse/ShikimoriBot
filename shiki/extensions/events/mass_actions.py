@@ -35,7 +35,7 @@ from shiki.utils import db, tools
 import shiki
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("EventsMassActions")
 
@@ -54,7 +54,7 @@ async def member_update(event: hikari.VoiceStateUpdateEvent):
     voice = event.state
 
     try:
-        host = [e for e in tools.load_data('events').values()
+        host = [e for e in tools.load_data('./data/events').values()
                 if e['started']][0]['host']
     except IndexError:
         host = 0

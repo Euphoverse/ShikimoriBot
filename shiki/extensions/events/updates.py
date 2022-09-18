@@ -37,7 +37,7 @@ import shiki
 import aiohttp
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("EventsUpdates")
 local_tz = datetime.now(timezone.utc).astimezone().tzinfo
@@ -46,7 +46,7 @@ local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 @plugin.listener(hikari.ScheduledEventUpdateEvent)
 async def update_listener(event: hikari.ScheduledEventUpdateEvent):
     e = event.event
-    data = tools.load_data('events')
+    data = tools.load_data('./data/events')
     if str(e.id) not in data:
         return
 
@@ -113,7 +113,7 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
 
 @plugin.listener(hikari.ScheduledEventDeleteEvent)
 async def delete_listener(event: hikari.ScheduledEventDeleteEvent):
-    data = tools.load_data('events')
+    data = tools.load_data('./data/events')
     data.pop(str(event.event.id))
     tools.update_data('events', data)
 
@@ -126,7 +126,7 @@ async def start_loop(_):
 async def event_reminders() -> None:
     guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
     while plugin.bot.is_alive:
-        data = tools.load_data('events')
+        data = tools.load_data('./data/events')
         now = datetime.now().astimezone(zoneinfo.ZoneInfo(
             'Europe/Moscow')).replace(second=0, microsecond=0, tzinfo=None)
         for id in data:

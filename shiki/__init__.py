@@ -47,3 +47,13 @@ class Colors:
 
     ANC_HIGH = Color.from_hex_code('#85005f')
     ANC_LOW = Color.from_hex_code('#a2a5ff')
+
+
+IMAGES = {
+    'thinking': [
+        'https://i.postimg.cc/gkdj26fd/image-2022-09-18-144207362.png'
+    ],
+    'angry': [
+        'https://i.postimg.cc/66CVPnrN/tumblr-634f81dd0aeb75229b16b7c3374fbf22-695744b4-540-1.gif'
+    ]
+}

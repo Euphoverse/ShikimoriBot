@@ -36,52 +36,20 @@ import shiki
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("Misc")
+plugin = lightbulb.Plugin("Admin")
 
 
 @plugin.command
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.command(
-    'misc',
-    'Разные вспомогательные команды',
+    'admin',
+    'Команды для администраторов',
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashCommandGroup)
-async def misc(ctx: lightbulb.SlashContext) -> None:
-    # Command group /misc
+async def admin(ctx: lightbulb.SlashContext):
+    # Command group /admin
     pass
-
-
-@misc.child
-@lightbulb.option(
-    'sides',
-    'Количество граней',
-    type=int,
-    required=True,
-    min_value=2,
-    max_value=101
-)
-@lightbulb.option(
-    'cubes',
-    'Количество кубиков',
-    type=int,
-    required=False,
-    min_value=1,
-    max_value=15,
-    default=1
-)
-@lightbulb.command(
-    'dice',
-    'Кинуть кубики'
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def dice(ctx: lightbulb.SlashContext) -> None:
-    await ctx.respond(embed=hikari.Embed(
-        title='Кубики',
-        description=', '.join([str(random.randint(1, ctx.options.sides))
-                              for _ in range(ctx.options.cubes)]),
-        color=shiki.Colors.SUCCESS
-        # TODO: Add emotion to embed
-    ))
 
 
 def load(bot):

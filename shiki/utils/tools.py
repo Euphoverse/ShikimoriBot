@@ -28,7 +28,7 @@
 
 import json
 from typing import Any, List
-from hikari import Embed, File, Guild, Member
+from hikari import Embed, File, Guild, Member, Color
 import os
 from random import choice
 from shiki.utils import db
@@ -37,6 +37,48 @@ DATA_PATH = './data/%s.json'
 
 
 users = db.connect().get_database('shiki').get_collection('users')
+
+
+def embed_from_dict(data: dict) -> Embed:
+    embed = Embed(
+        title=data.get('title', None),
+        description=data.get('description', None),
+        url=data.get('url', None),
+        color=Color.from_hex_code(data.get('color', None)),
+        timestamp=data.get('timestamp', None)
+    )
+    if 'footer' in data:
+        embed.set_footer(
+            data['footer'].get('text', None),
+            icon=data['footer'].get('icon_url', None)
+        )
+
+    if 'image' in data:
+        embed.set_image(
+            data['image'].get('url', None)
+        )
+
+    if 'thumbnail' in data:
+        embed.set_thumbnail(
+            data['thumbnail'].get('url')
+        )
+
+    if 'author' in data:
+        embed.set_author(
+            name=data['author'].get('name', None),
+            url=data['author'].get('url', None),
+            icon=data['author'].get('icon_url', None)
+        )
+
+    if 'fields' in data:
+        for field in data['fields']:
+            embed.add_field(
+                field['name'],
+                field['value'],
+                inline=field.get('inline', False)
+            )
+
+    return embed
 
 
 def calc_xp(lvl):
@@ -65,31 +107,17 @@ def get_mod_users(mod_id: int) -> List[int]:
     return [doc['_id'] for doc in db.find_document(users, {}, True) if doc['mod'] == mod_id]
 
 
-def load_file(name: str) -> dict | list | None:
-    '''Loads json file with passed name from ./settings folder'''
-    if os.path.isfile(SETTINGS_PATH % name):
-        with open(SETTINGS_PATH % name, 'r') as f:
-            return json.load(f)
-
-
-def update_file(name: str, data: dict | list) -> None:
-    '''Updates json file with passed name from ./settings folder'''
-    if os.path.isfile(SETTINGS_PATH % name):
-        with open(SETTINGS_PATH % name, 'r') as f:
-            return json.dump(data, f)
-
-
-def load_data(name: str) -> dict | list | None:
-    '''Loads json file with passed named from ./data folder'''
-    if os.path.isfile(DATA_PATH % name):
-        with open(DATA_PATH % name, 'r') as f:
+def load_data(name: str, encoding=None) -> dict | list | None:
+    '''Loads json file'''
+    if os.path.isfile(name + '.json'):
+        with open(name + '.json', 'r', encoding=encoding) as f:
             return json.load(f)
 
 
 def update_data(name: str, data: dict | list) -> None:
-    '''Updates json file with passed name from ./data folder'''
-    if os.path.isfile(DATA_PATH % name):
-        with open(DATA_PATH % name, 'w') as f:
+    '''Updates json file'''
+    if os.path.isfile(name + '.json', encoding=encoding):
+        with open(name + '.json', 'w') as f:
             return json.dump(data, f)
 
 
@@ -99,7 +127,7 @@ def get(iter, **kwargs) -> Any:
             return item
 
 
-cfg = load_file('config')
+cfg = load_data('./settings/config')
 
 
 def get_mods(guild: Guild) -> List[Member]:
