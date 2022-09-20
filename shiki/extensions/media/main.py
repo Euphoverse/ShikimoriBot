@@ -31,6 +31,7 @@ import lightbulb
 import hikari
 from shiki.utils import db, tools
 import shiki
+from .ui import embed
 
 
 cfg = tools.load_file('config')
@@ -64,7 +65,14 @@ async def media(ctx: lightbulb.SlashContext):
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def new_embed(ctx: lightbulb.SlashContext):
-    ...
+    view = embed.EmbedConstructor()
+    msg = await (await ctx.respond(
+        embed=hikari.Embed(
+            title='Нет заголовка'
+        ),
+        components=view
+    )).message()
+    await view.start(msg)
 
 
 def load(bot):
