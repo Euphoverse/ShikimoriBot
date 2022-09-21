@@ -38,6 +38,10 @@ WAIFUPICS = 'https://api.waifu.pics'
 
 # Color palette
 class Colors:
+    ALL_COLORS = ['SUCCESS', 'ERROR', 'WARNING',
+                  'WAIT', 'SPONSOR', 'ANC_HIGH',
+                  'ANC_LOW']
+
     from hikari import Color
     SUCCESS = Color.from_hex_code('#f4c0e6')
     ERROR = Color.from_hex_code('#936cab')

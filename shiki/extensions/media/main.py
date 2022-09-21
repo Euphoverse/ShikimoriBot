@@ -65,7 +65,7 @@ async def media(ctx: lightbulb.SlashContext):
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def new_embed(ctx: lightbulb.SlashContext):
-    view = embed.EmbedConstructor()
+    view = embed.EmbedConstructor(timeout=600)
     msg = await (await ctx.respond(
         embed=hikari.Embed(
             title='Нет заголовка'

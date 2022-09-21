@@ -8,6 +8,9 @@ from shiki.utils import db
 users = db.connect().get_database('shiki').get_collection('users')
 
 
+# - Modals
+
+# Editing title, description and URl
 class TitleDesc(miru.Modal):
     name = miru.TextInput(
         label="Заголовок",
@@ -40,6 +43,7 @@ class TitleDesc(miru.Modal):
         await ctx.edit_response(embed=self.embed)
 
 
+# Editing timestamps
 class Timestamp(miru.Modal):
     date = miru.TextInput(
         label="Дата",
@@ -70,6 +74,65 @@ class Timestamp(miru.Modal):
         await ctx.edit_response(embed=self.embed)
 
 
+# Editing color
+class EditColor(miru.Modal):
+    color = miru.TextInput(
+        label='HEX Цвет',
+        value='#000000',
+        placeholder='Введите HEX код цвета (#000000)',
+        max_length=7, min_length=7
+    )
+
+    def __init__(self, embed, *args, **kwargs):
+        self.embed = embed
+        super().__init__(*args, **kwargs)
+
+    async def callback(self, ctx: miru.ModalContext) -> None:
+        self.embed.color = hikari.Color.from_hex_code(
+            list(ctx.values.items())[0])
+        await ctx.edit_response(embed=self.embed)
+
+
+# Editing author
+class EditAuthor(miru.Modal):
+    name = miru.TextInput(
+        label='Имя',
+        placeholder='Введите имя автора',
+        max_length=256, required=True,
+        custom_id='name'
+    )
+    url = miru.TextInput(
+        label='URL',
+        placeholder='Введите ссылку',
+        custom_id='url'
+    )
+    icon_url = miru.TextInput(
+        label='Иконка автора',
+        placeholder='Введите ссылку на иконку автора',
+        required=False, custom_id='icon_url'
+    )
+
+    def __init__(self, embed, *args, **kwargs):
+        self.embed = embed
+        super().__init__(*args, **kwargs)
+
+    async def callback(self, ctx: miru.ModalContext) -> None:
+        for i in ctx.values:
+            if i.custom_id == 'name':
+                name = ctx.values[i] if ctx.values[i] != '' else None
+            elif i.custom_id == 'icon_url':
+                icon_url = ctx.values[i] if ctx.values[i] != '' else None
+            elif i.custom_id == 'url':
+                url = ctx.values[i] if ctx.values[i] != '' else None
+        self.embed.set_author(
+            name=name,
+            icon=icon_url,
+            url=url
+        )
+        await ctx.edit_response(embed=self.embed)
+
+
+# - Main view
 class EmbedConstructor(miru.View):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -82,9 +145,9 @@ class EmbedConstructor(miru.View):
     @miru.select(
         options=[
             miru.SelectOption('Ручная установка', 'timestamp',
-                              'Ввести время вручную'),
+                              'Ввести время вручную', emoji='<:color:821446833590894652>'),
             miru.SelectOption('Автоматическая установка', 'now',
-                              'Установить нынешнее время автоматически')
+                              'Установить нынешнее время автоматически', emoji='🤖')
         ],
         placeholder='Время'
     )
@@ -99,6 +162,50 @@ class EmbedConstructor(miru.View):
 
         modal = Timestamp(ctx.message.embeds[0], 'Установка времени')
         await ctx.respond_with_modal(modal)
+
+    @miru.select(
+        options=[miru.SelectOption(
+            'Ручная установка', 'manual', 'Ввести HEX цвета вручную', emoji='<:color:821446833590894652>')
+        ] + [
+            miru.SelectOption(color, color, 'shiki.Colors.%s' % color)
+            for color in shiki.Colors.ALL_COLORS
+        ],
+        placeholder='Цвет'
+    )
+    async def edit_color(self, select: miru.Select, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        if select.values[0] == 'manual':
+            modal = EditColor(embed, 'Изменение цвета')
+            await ctx.respond_with_modal(modal)
+            return
+
+        embed.color = eval('shiki.Colors.%s' % select.values[0])
+        await ctx.edit_response(
+            embed=embed
+        )
+
+    @miru.select(
+        options=[
+            miru.SelectOption('Ручная установка', 'manual',
+                              'Установить автора вручную', emoji='<:color:821446833590894652>'),
+            miru.SelectOption('Автоматическая установка', 'auto',
+                              'Установить вас как автора сообщения', emoji='🤖')
+        ],
+        placeholder='Автор'
+    )
+    async def edit_author(self, select: miru.Select, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        if select.values[0] == 'manual':
+            modal = EditAuthor(embed, 'Изменение автора')
+            await ctx.respond_with_modal(modal)
+
+        embed.set_author(
+            name=ctx.user.username,
+            icon=ctx.user.display_avatar_url.url
+        )
+        await ctx.edit_response(
+            embed=embed
+        )
 
     async def on_timeout(self) -> None:
         try:
