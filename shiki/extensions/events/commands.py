@@ -197,7 +197,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'link': event_link,
         'started': False
     }
-    tools.update_data('events', events_data)
+    tools.update_data('./data/events', events_data)
 
     embed = hikari.Embed(
         title='Ивент создан',

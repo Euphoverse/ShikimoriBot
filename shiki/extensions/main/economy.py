@@ -63,7 +63,7 @@ async def profile(ctx: lightbulb.SlashContext):
         title='Профиль пользователя',
         color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
     )
-    em.set_author(name=str(user), url=user.display_avatar_url.url)
+    em.set_author(name=str(user), icon=user.display_avatar_url.url)
 
     em.add_field(
         'Спонсорка', 'нет' if data['sponsor'] is None else 'активна с ' + data['sponsor'])

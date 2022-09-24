@@ -114,10 +114,10 @@ def load_data(name: str, encoding=None) -> dict | list | None:
             return json.load(f)
 
 
-def update_data(name: str, data: dict | list) -> None:
+def update_data(name: str, data: dict | list, encoding=None) -> None:
     '''Updates json file'''
-    if os.path.isfile(name + '.json', encoding=encoding):
-        with open(name + '.json', 'w') as f:
+    if os.path.isfile(name + '.json'):
+        with open(name + '.json', 'w', encoding=encoding) as f:
             return json.dump(data, f)
 
 
