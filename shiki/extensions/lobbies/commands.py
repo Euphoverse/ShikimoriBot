@@ -218,7 +218,7 @@ async def add(ctx: lightbulb.SlashContext):
 )
 @lightbulb.command(
     'remove',
-    'Удрать пользователя из лобби'
+    'Убрать пользователя из лобби'
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def remove(ctx: lightbulb.SlashContext):
