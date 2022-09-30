@@ -39,7 +39,23 @@ users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 
 
+def addXp(id, amount):
+    xp = db.find_document(users, {'_id': id})['xp']
+    xp += amount
+    db.update_document(users, {'_id': id}, {'xp': xp})
+
+
 @plugin.command
+@lightbulb.command(
+    'economy',
+    'Команды связанные с системой экономики',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
+async def economy(ctx: lightbulb.SlashContext):
+    pass
+
+@economy.child
 @lightbulb.option(
     'user',
     'Пользователь',
@@ -51,7 +67,7 @@ plugin = lightbulb.Plugin("Economy")
     'Просмотреть профиль пользователя',
     auto_defer=True
 )
-@lightbulb.implements(lightbulb.SlashCommand)
+@lightbulb.implements(lightbulb.SlashSubCommand)
 async def profile(ctx: lightbulb.SlashContext):
     if ctx.options.user is None:
         user = ctx.author
@@ -75,6 +91,126 @@ async def profile(ctx: lightbulb.SlashContext):
     em.add_field('Приглашений', data['invites'], inline=True)
 
     await ctx.respond(embed=em)
+
+
+@economy.child
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=True
+)
+@lightbulb.option(
+    'amount',
+    'Сумма',
+    int,
+    required=True
+)
+@lightbulb.command(
+    'transfer',
+    'Перевести деньги другому участнику',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def transfer(ctx: lightbulb.SlashContext):
+    sender = ctx.author
+    recipient = ctx.options.user
+
+    if(sender.id == recipient.id):
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Вы не можете перевести деньги самому себе!',
+            color=shiki.Colors.ERROR
+        ))
+
+    if(ctx.options.amount <= 0):
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Вы не можете перевести отрицательное количество средств!',
+            color=shiki.Colors.ERROR
+        ))
+    
+    sender_data = db.find_document(users, {'_id': sender.id})
+    recipient_data = db.find_document(users, {'_id': recipient.id})
+
+    if(sender_data['money'] < ctx.options.amount):
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Недостаточно средств!',
+            color=shiki.Colors.ERROR
+        ))
+
+    updatedBalance = sender_data['money'] - ctx.options.amount
+    db.update_document(users, {'_id': sender.id}, {'money': updatedBalance})
+    updatedBalance = recipient_data['money'] + ctx.options.amount
+    db.update_document(users, {'_id': recipient.id}, {'money': updatedBalance})
+
+    await ctx.respond(embed=hikari.Embed(
+        title='Выполнено!',
+        description=f'Успешно переведено {ctx.options.amount} {recipient.username}!',
+        color=shiki.Colors.SUCCESS
+    ))
+
+
+@economy.child
+@lightbulb.option(
+    'dice',
+    'Номер кости (от 1 до 6)',
+    int,
+    required=True
+)
+@lightbulb.option(
+    'bet',
+    'Ставка',
+    int,
+    required=True
+)
+@lightbulb.command(
+    'dice',
+    'Кинуть кости',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def transfer(ctx: lightbulb.SlashContext):
+    if(ctx.options.dice < 1) | (ctx.options.dice > 6):
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Выберите число кости от 1 до 6!',
+            color=shiki.Colors.ERROR
+        ))
+
+    if(ctx.options.bet <= 0):
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Вы не можете поставить отрицательное количество средств!',
+            color=shiki.Colors.ERROR
+        ))
+        
+    rDice = random.randint(1,6)
+    user = ctx.author
+    user_data = db.find_document(users, {'_id': user.id})
+    newbalance = user_data['money'] - ctx.options.bet
+
+    if(rDice == ctx.options.dice):
+        # Ставка сыграла
+        newbalance += ctx.options.bet * 6
+        await ctx.respond(embed=hikari.Embed(
+            title='Победа',
+            description=f'Вы очень удачливы! Вы выиграли {ctx.options.bet * 6}.',
+            color=shiki.Colors.SUCCESS
+        ))
+    else:
+        # Ставка проиграна
+        await ctx.respond(embed=hikari.Embed(
+            title='Проигрыш',
+            description=f'Увы, ваша ставка не сыграла. Вы проиграли {ctx.options.bet}.',
+            color=shiki.Colors.ERROR
+        ))
+    db.update_document(users, {'_id': user.id}, {'money': newbalance})
+    if(ctx.options.bet >= 1000):
+        addXp(user.id,2)
+    else:
+        addXp(user.id,1)
 
 
 def load(bot):
