@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import random
+from xml.dom import HierarchyRequestErr
 import lightbulb
 import hikari
 import logging
@@ -50,6 +51,41 @@ plugin = lightbulb.Plugin("Admin")
 async def admin(ctx: lightbulb.SlashContext):
     # Command group /admin
     pass
+
+
+@admin.child
+@lightbulb.option(
+    'user',
+    'Получатель халявы',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'amount',
+    'Сумма халявы',
+    int,
+    required=True
+)
+@lightbulb.command(
+    'increase',
+    'Выдать пользователю деньги',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def addMoney(ctx: lightbulb.SlashContext):
+    if ctx.options.user is None:
+        user = ctx.author
+    else:
+        user = ctx.options.user
+
+    user_data = db.find_document(users, {'_id': user.id})
+    user_data['money'] += ctx.options.amount
+    db.update_document(users, {'_id': user.id}, {'money': user_data["money"]})
+    await ctx.respond(embed=hikari.Embed(
+        title='Успех',
+        description=f'Выдано пользователю {user} {ctx.options.amount}! Новый баланс: {user_data["money"]}',
+        color=shiki.Colors.SUCCESS
+    ))
 
 
 def load(bot):
