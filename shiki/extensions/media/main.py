@@ -26,16 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 from .ui import embed
 
 
-cfg = tools.load_file('config')
-presets = tools.load_file('embed_presets')
+cfg = tools.load_data('./settings/config.json')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("MediaBroadcasts")
 
@@ -53,12 +50,6 @@ async def media(ctx: lightbulb.SlashContext):
 
 
 @media.child
-@lightbulb.option(
-    'preset',
-    'Пресет который вы желаете использовать',
-    required=False,
-    choices=presets.keys()
-)
 @lightbulb.option(
     'channel',
     'Канал в котором будет опубликовано сообщение',
