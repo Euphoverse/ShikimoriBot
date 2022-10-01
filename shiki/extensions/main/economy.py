@@ -46,9 +46,10 @@ async def add_xp(user, amount, ctx):
     xp += amount
     needed_xp = tools.calc_xp(data['level'] + 1)
     reward = 0
-    if(xp >= needed_xp):
+    while xp >= needed_xp:
         xp -= needed_xp
         data['level'] += 1
+        needed_xp = tools.calc_xp(data['level'] + 1)
         reward = data['level'] * 25 + 100
         await ctx.get_guild()\
                  .get_channel(cfg[cfg['mode']]['channels']['actions'])\
@@ -233,7 +234,6 @@ async def daily(ctx: lightbulb.SlashContext):
     user = ctx.author
     data = db.find_document(users, {'_id': user.id})
     bonus = random.randint(203, 210)
-    await add_xp(user, 10, ctx)
     if(data['last_daily'] == 0) or (datetime.now() - data['last_daily'] > timedelta(days=1)):
         db.update_document(users, {'_id': user.id},
                            {'money': data['money'] + bonus,
@@ -243,6 +243,7 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
+        await add_xp(user, 10, ctx)
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(
