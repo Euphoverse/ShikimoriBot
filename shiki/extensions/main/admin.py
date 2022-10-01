@@ -27,7 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import random
-from xml.dom import HierarchyRequestErr
 import lightbulb
 import hikari
 import logging
@@ -41,7 +40,8 @@ plugin = lightbulb.Plugin("Admin")
 
 
 @plugin.command
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+# @lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.add_checks(lightbulb.owner_only)
 @lightbulb.command(
     'admin',
     'Команды для администраторов',
