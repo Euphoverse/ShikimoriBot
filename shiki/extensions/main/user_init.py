@@ -42,7 +42,6 @@ async def assign_mod(member: hikari.Member):
     mod = min(tools.get_mods(await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])),
               key=lambda id: tools.get_mod_users(id))
     db.update_document(users, {'_id': member.id}, {'mod': mod.id})
-    # db.update_document(users, {'_id': member.id}, {'mod': None})
 
 
 @plugin.listener(hikari.ShardReadyEvent)

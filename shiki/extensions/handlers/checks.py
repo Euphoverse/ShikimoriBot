@@ -52,7 +52,7 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             title='Не так быстро!',
             description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
             color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Превышение частоты'))
+        ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
         return
 
     raise event.exception

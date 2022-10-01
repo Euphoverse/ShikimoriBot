@@ -31,6 +31,9 @@ from typing import Any, List
 from hikari import Embed, File, Guild, Member, Color
 import os
 from random import choice
+
+import hikari
+import lightbulb
 from shiki.utils import db
 import shiki
 SETTINGS_PATH = './settings/%s.json'
@@ -142,25 +145,28 @@ def get_mods(guild: Guild) -> List[Member]:
     return mods
 
 
-async def add_xp(user, amount, ctx):
+async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
     data = db.find_document(users, {'_id': user.id})
-    xp = data['xp']
-    xp += amount
+    xp = data['xp'] + amount
     needed_xp = calc_xp(data['level'] + 1)
     reward = 0
+
     while xp >= needed_xp:
         xp -= needed_xp
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
         reward = data['level'] * 25 + 100
-        await ctx.get_guild()\
-                 .get_channel(cfg[cfg['mode']]['channels']['actions'])\
-                 .send(user.mention, embed=Embed(
-                     title='Повышение уровня',
-                     description=f'{user.username} достиг **{data["level"]}** уровня! Награда: **{reward}**{cfg["emojis"]["currency"]}',
-                     color=shiki.Colors.SUCCESS
-                 ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
+        await ctx.bot.rest.create_message(
+            channel=cfg[cfg['mode']]['channels']['actions'],
+            embed=Embed(
+                title='Повышение уровня',
+                description=f'{user.username} достиг **{data["level"]}** уровня! Награда: **{reward}**{cfg["emojis"]["currency"]}',
+                color=shiki.Colors.SUCCESS
+            ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url)
+        )
 
-    db.update_document(users, {'_id': user.id}, {'level': data['level'], 
-                                            'xp': xp,
-                                            'money': data['money'] + reward})
+    db.update_document(users,
+                       {'_id': user.id},
+                       {'level': data['level'], 'xp': xp,
+                        'money': data['money'] + reward}
+                       )

@@ -76,7 +76,8 @@ async def profile(ctx: lightbulb.SlashContext):
         title=f'Профиль пользователя {user.username}',
         color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
     )
-    em.set_footer(text=f'Запросил {ctx.author.username}', icon=ctx.author.display_avatar_url.url)
+    em.set_footer(text=f'Запросил {ctx.author.username}',
+                  icon=ctx.author.display_avatar_url.url)
     em.set_thumbnail(user.display_avatar_url.url)
 
     em.add_field(
@@ -181,16 +182,16 @@ async def dice(ctx: lightbulb.SlashContext):
             title='Победа',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=f'{user.username} сыграл в кости', icon=user.display_avatar_url.url)
-        .add_field(f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
-        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
+            .add_field(f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
+                       f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
     else:
         # Ставка проиграна
         await ctx.respond(embed=hikari.Embed(
             title='Проигрыш',
             color=shiki.Colors.ERROR
         ).set_footer(text=f'{user.username} сыграл в кости', icon=user.display_avatar_url.url)
-        .add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
-        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
+            .add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
+                       f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
@@ -210,7 +211,7 @@ async def daily(ctx: lightbulb.SlashContext):
     user = ctx.author
     data = db.find_document(users, {'_id': user.id})
     bonus = random.randint(203, 210)
-    if(data['last_daily'] == 0) or (datetime.now() - data['last_daily'] > timedelta(days=1)):
+    if data['last_daily'] == 0 or datetime.now() - data['last_daily'] > timedelta(days=1):
         db.update_document(users, {'_id': user.id},
                            {'money': data['money'] + bonus,
                            'last_daily': datetime.now()})
