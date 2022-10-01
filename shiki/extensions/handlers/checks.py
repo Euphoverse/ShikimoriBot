@@ -1,6 +1,5 @@
 import lightbulb
 import hikari
-import logging
 from shiki.utils import db, tools
 import shiki
 
@@ -18,6 +17,15 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             color=shiki.Colors.ERROR
         ))
         return
+
+    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
+        await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+            title='Не так быстро!',
+            description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
+            color=shiki.Colors.ERROR
+        ))
+        return
+
     raise event.exception
 
 
