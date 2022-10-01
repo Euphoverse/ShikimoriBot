@@ -124,7 +124,6 @@ async def start_loop(_):
 
 
 async def event_reminders() -> None:
-    guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
     while plugin.bot.is_alive:
         data = tools.load_data('./data/events')
         now = datetime.now().astimezone(zoneinfo.ZoneInfo(

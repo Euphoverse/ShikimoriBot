@@ -39,21 +39,21 @@ users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 
 
-def addXp(id, amount):
+def add_xp(id, amount):
     data = db.find_document(users, {'_id': id})
     xp = data['xp']
 
     xp += amount
-    neededXp = tools.calc_xp(data['level'] + 1)
+    needed_xp = tools.calc_xp(data['level'] + 1)
 
     levelup = False
 
-    if(xp >= neededXp):
-        xp -= neededXp
+    if(xp >= needed_xp):
+        xp -= needed_xp
         data['level'] += 1
         levelup = True
 
-    db.update_document(users, {'_id': id}, {'level': data['level'],'xp': xp})
+    db.update_document(users, {'_id': id}, {'level': data['level'], 'xp': xp})
     return levelup
 
 
@@ -65,7 +65,9 @@ def addXp(id, amount):
 )
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def economy(ctx: lightbulb.SlashContext):
+    # /economy
     pass
+
 
 @economy.child
 @lightbulb.option(
@@ -141,7 +143,7 @@ async def transfer(ctx: lightbulb.SlashContext):
             description='Вы не можете перевести отрицательное количество средств!',
             color=shiki.Colors.ERROR
         ))
-    
+
     sender_data = db.find_document(users, {'_id': sender.id})
     recipient_data = db.find_document(users, {'_id': recipient.id})
 
@@ -152,10 +154,11 @@ async def transfer(ctx: lightbulb.SlashContext):
             color=shiki.Colors.ERROR
         ))
 
-    updatedBalance = sender_data['money'] - ctx.options.amount
-    db.update_document(users, {'_id': sender.id}, {'money': updatedBalance})
-    updatedBalance = recipient_data['money'] + ctx.options.amount
-    db.update_document(users, {'_id': recipient.id}, {'money': updatedBalance})
+    updated_balance = sender_data['money'] - ctx.options.amount
+    db.update_document(users, {'_id': sender.id}, {'money': updated_balance})
+    updated_balance = recipient_data['money'] + ctx.options.amount
+    db.update_document(users, {'_id': recipient.id},
+                       {'money': updated_balance})
 
     await ctx.respond(embed=hikari.Embed(
         title='Выполнено!',
@@ -198,13 +201,13 @@ async def transfer(ctx: lightbulb.SlashContext):
             description='Вы не можете поставить отрицательное количество средств!',
             color=shiki.Colors.ERROR
         ))
-        
-    rDice = random.randint(1,6)
+
+    r_dice = random.randint(1, 6)
     user = ctx.author
     user_data = db.find_document(users, {'_id': user.id})
     newbalance = user_data['money'] - ctx.options.bet
 
-    if(rDice == ctx.options.dice):
+    if(r_dice == ctx.options.dice):
         # Ставка сыграла
         newbalance += ctx.options.bet * 6
         await ctx.respond(embed=hikari.Embed(
@@ -219,11 +222,17 @@ async def transfer(ctx: lightbulb.SlashContext):
             description=f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
             color=shiki.Colors.ERROR
         ))
-    
+
     if(ctx.options.bet >= 1000):
+<<<<<<< HEAD
         levelup = addXp(user.id, 3)
     else:
         levelup = addXp(user.id, 1)
+=======
+        levelup = add_xp(user.id, 100)
+    else:
+        levelup = add_xp(user.id, 25)
+>>>>>>> 1e1d5d3b1e1b5d9ac73fd59aa4a60818e418a711
     if(levelup == True):
         newlevel = db.find_document(users, {'_id': user.id})['level']
         reward = newlevel * 25 + 100
@@ -232,9 +241,9 @@ async def transfer(ctx: lightbulb.SlashContext):
         await ctx.get_guild()\
                  .get_channel(cfg[cfg['mode']]['channels']['actions'])\
                  .send(user.mention, embed=hikari.Embed(
-                    title='Повышение уровня',
-                    description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**',
-                    color=shiki.Colors.SUCCESS
+                     title='Повышение уровня',
+                     description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**',
+                     color=shiki.Colors.SUCCESS
                  ))
 
     db.update_document(users, {'_id': user.id}, {'money': newbalance})

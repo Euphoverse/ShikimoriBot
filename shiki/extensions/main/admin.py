@@ -72,7 +72,7 @@ async def admin(ctx: lightbulb.SlashContext):
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def addMoney(ctx: lightbulb.SlashContext):
+async def add_money(ctx: lightbulb.SlashContext):
     if ctx.options.user is None:
         user = ctx.author
     else:

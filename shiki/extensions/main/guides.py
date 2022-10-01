@@ -80,7 +80,7 @@ async def update_guides_cmd(ctx: lightbulb.SlashContext):
 
     await update_guides()
 
-    m = await ctx.edit_last_response(embed=hikari.Embed(
+    await ctx.edit_last_response(embed=hikari.Embed(
         title='Выполнено!',
         description='Все гайды успешно обновлены',
         color=shiki.Colors.SUCCESS
