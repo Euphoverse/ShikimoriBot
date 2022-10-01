@@ -55,7 +55,20 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
         return
 
-    raise event.exception
+    await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+            color=shiki.Colors.ERROR
+        ).set_author(name='Офицальный сервер', url='https://discord.gg/3s7mnTm9Xt')
+         .set_footer(text=f'{emoji_denied} Ошибка')
+         .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков. Скоро проблема будет решена')
+    )
+    
+    await plugin.bot.rest.create_message(
+        channel=cfg[cfg['mode']]['channels']['errors'],
+        embed=hikari.Embed(
+            color=shiki.Colors.ERROR
+        ).set_footer(text=f'{emoji_denied} Ошибка')
+         .add_field('Получена неизвестная ошибка', event.exception)
+    )
 
 
 def load(bot):
