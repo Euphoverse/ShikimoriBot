@@ -223,7 +223,7 @@ async def dice(ctx: lightbulb.SlashContext):
                  .get_channel(cfg[cfg['mode']]['channels']['actions'])\
                  .send(user.mention, embed=hikari.Embed(
                      title='Повышение уровня',
-                     description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**',
+                     description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**{currency_emoji}',
                      color=shiki.Colors.SUCCESS
                  ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
 

@@ -37,6 +37,7 @@ import shiki
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Admin")
+currency_emoji = cfg['emojis']['currency']
 
 
 @plugin.command
@@ -83,9 +84,9 @@ async def add_money(ctx: lightbulb.SlashContext):
     db.update_document(users, {'_id': user.id}, {'money': user_data["money"]})
     await ctx.respond(embed=hikari.Embed(
         title='Успех',
-        description=f'Выдано пользователю {user} {ctx.options.amount}! Новый баланс: {user_data["money"]}',
+        description=f'Выдано пользователю **{user.username} {ctx.options.amount}{currency_emoji}**\nНовый баланс: **{user_data["money"]}{currency_emoji}**',
         color=shiki.Colors.SUCCESS
-    ))
+    ).set_footer(text='Выдача валюты', icon=ctx.author.display_avatar_url.url))
 
 
 
@@ -108,9 +109,9 @@ async def resetUser(ctx: lightbulb.SlashContext):
     user = ctx.options.user
     await ctx.respond(embed=hikari.Embed(
         title='Подтверждение',
-        description=f'Вы уверены, что хотите обнулить статистику {user}? Y/N',
+        description=f'Вы уверены, что хотите обнулить статистику **{user}**?\n\n**Y/N**',
         color=shiki.Colors.WARNING
-    ))
+    ).set_footer(text='Обнуление статистики', icon=ctx.author.display_avatar_url.url))
 
     # Ожидание
     def check():
@@ -135,16 +136,16 @@ async def resetUser(ctx: lightbulb.SlashContext):
         db.update_document(users, {'_id': user.id}, cfg['db_defaults']['users'])
         await ctx.edit_last_response(embed=hikari.Embed(
             title='Выполнено',
-            description=f'Статистика {user} была полностью обнулена.',
+            description=f'Статистика **{user}** была полностью обнулена.',
             color=shiki.Colors.SUCCESS
-        ))
+        ).set_footer(text='Обнуление статистики', icon=ctx.author.display_avatar_url.url))
     else:
         # Отмена
         await ctx.edit_last_response(embed=hikari.Embed(
             title='Отменено',
             description=f'Действие обнуления было отменено',
             color=shiki.Colors.ERROR
-        ))
+        ).set_footer(text='Обнуление статистики', icon=ctx.author.display_avatar_url.url))
 
 
 def load(bot):
