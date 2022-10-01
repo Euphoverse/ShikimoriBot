@@ -40,30 +40,6 @@ plugin = lightbulb.Plugin("Economy")
 currency_emoji = cfg['emojis']['currency']
 
 
-async def add_xp(user, amount, ctx):
-    data = db.find_document(users, {'_id': user.id})
-    xp = data['xp']
-    xp += amount
-    needed_xp = tools.calc_xp(data['level'] + 1)
-    reward = 0
-    while xp >= needed_xp:
-        xp -= needed_xp
-        data['level'] += 1
-        needed_xp = tools.calc_xp(data['level'] + 1)
-        reward = data['level'] * 25 + 100
-        await ctx.get_guild()\
-                 .get_channel(cfg[cfg['mode']]['channels']['actions'])\
-                 .send(user.mention, embed=hikari.Embed(
-                     title='Повышение уровня',
-                     description=f'{user.username} достиг **{data["level"]}** уровня! Награда: **{reward}**{currency_emoji}',
-                     color=shiki.Colors.SUCCESS
-                 ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
-
-    db.update_document(users, {'_id': user.id}, {'level': data['level'], 
-                                            'xp': xp,
-                                            'money': data['money'] + reward})
-
-
 @plugin.command
 @lightbulb.command(
     'economy',
@@ -218,9 +194,9 @@ async def dice(ctx: lightbulb.SlashContext):
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
-        await add_xp(user, 5, ctx)
+        await tools.add_xp(user, 5, ctx)
     else:
-        await add_xp(user, 1, ctx)
+        await tools.add_xp(user, 1, ctx)
 
 
 @economy.child
@@ -243,7 +219,7 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
-        await add_xp(user, 10, ctx)
+        await tools.add_xp(user, 10, ctx)
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(
