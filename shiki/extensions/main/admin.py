@@ -88,6 +88,65 @@ async def addMoney(ctx: lightbulb.SlashContext):
     ))
 
 
+
+@admin.child
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Жертва',
+    hikari.Member,
+    required=False
+)
+@lightbulb.command(
+    'reset',
+    'Обнулить статистику пользователя',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def resetUser(ctx: lightbulb.SlashContext):
+    # Подтверждение
+    user = ctx.options.user
+    await ctx.respond(embed=hikari.Embed(
+        title='Подтверждение',
+        description=f'Вы уверены, что хотите обнулить статистику {user}? Y/N',
+        color=shiki.Colors.WARNING
+    ))
+
+    # Ожидание
+    def check():
+        return event.author_id == ctx.user.id and event.channel_id == ctx.channel_id
+    
+    while True:
+        event = await plugin.bot.wait_for(
+            hikari.GuildMessageCreateEvent,
+            timeout=5
+        )
+        if check():
+            break
+
+    resp = event.message.content
+    await event.message.delete()
+    if(resp.lower() == 'y')|\
+        (resp.lower() == 'ye')|\
+        (resp.lower() == 'yes')|\
+        (resp.lower() == 'yep'):
+
+        # Обнуление
+        db.update_document(users, {'_id': user.id}, cfg['db_defaults']['users'])
+        await ctx.edit_last_response(embed=hikari.Embed(
+            title='Выполнено',
+            description=f'Статистика {user} была полностью обнулена.',
+            color=shiki.Colors.SUCCESS
+        ))
+    else:
+        # Отмена
+        await ctx.edit_last_response(embed=hikari.Embed(
+            title='Отменено',
+            description=f'Действие обнуления было отменено',
+            color=shiki.Colors.ERROR
+        ))
+
+
 def load(bot):
     bot.add_plugin(plugin)
 
