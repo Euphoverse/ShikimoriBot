@@ -118,7 +118,8 @@ async def profile(ctx: lightbulb.SlashContext):
     'amount',
     'Сумма',
     int,
-    required=True
+    required=True,
+    min_value=1
 )
 @lightbulb.command(
     'transfer',
@@ -134,13 +135,6 @@ async def transfer(ctx: lightbulb.SlashContext):
         return await ctx.respond(embed=hikari.Embed(
             title='Ошибка',
             description='Вы не можете перевести деньги самому себе!',
-            color=shiki.Colors.ERROR
-        ))
-
-    if(ctx.options.amount <= 0):
-        return await ctx.respond(embed=hikari.Embed(
-            title='Ошибка',
-            description='Вы не можете перевести отрицательное количество средств!',
             color=shiki.Colors.ERROR
         ))
 
@@ -173,13 +167,16 @@ async def transfer(ctx: lightbulb.SlashContext):
     'dice',
     'Номер кости (от 1 до 6)',
     int,
-    required=True
+    required=True,
+    min_value=1,
+    max_value=6
 )
 @lightbulb.option(
     'bet',
     'Ставка',
     int,
-    required=True
+    required=True,
+    min_value=1
 )
 @lightbulb.command(
     'dice',
@@ -187,21 +184,7 @@ async def transfer(ctx: lightbulb.SlashContext):
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def transfer(ctx: lightbulb.SlashContext):
-    if(ctx.options.dice < 1) | (ctx.options.dice > 6):
-        return await ctx.respond(embed=hikari.Embed(
-            title='Ошибка',
-            description='Выберите число кости от 1 до 6!',
-            color=shiki.Colors.ERROR
-        ))
-
-    if(ctx.options.bet <= 0):
-        return await ctx.respond(embed=hikari.Embed(
-            title='Ошибка',
-            description='Вы не можете поставить отрицательное количество средств!',
-            color=shiki.Colors.ERROR
-        ))
-
+async def dice(ctx: lightbulb.SlashContext):
     r_dice = random.randint(1, 6)
     user = ctx.author
     user_data = db.find_document(users, {'_id': user.id})
