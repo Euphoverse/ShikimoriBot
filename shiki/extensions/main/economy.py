@@ -39,10 +39,11 @@ users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 
 
-def addXp(id, amount):
-    xp = db.find_document(users, {'_id': id})['xp']
-    xp += amount
-    db.update_document(users, {'_id': id}, {'xp': xp})
+def add_xp(id, amount):
+    db.update_document(users, {'_id': id},
+                       {'xp':
+                        db.find_document(users, {'_id': id})['xp'] + amount
+                        })
 
 
 @plugin.command
@@ -53,7 +54,9 @@ def addXp(id, amount):
 )
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def economy(ctx: lightbulb.SlashContext):
+    # /economy
     pass
+
 
 @economy.child
 @lightbulb.option(
@@ -129,7 +132,7 @@ async def transfer(ctx: lightbulb.SlashContext):
             description='Вы не можете перевести отрицательное количество средств!',
             color=shiki.Colors.ERROR
         ))
-    
+
     sender_data = db.find_document(users, {'_id': sender.id})
     recipient_data = db.find_document(users, {'_id': recipient.id})
 
@@ -140,10 +143,11 @@ async def transfer(ctx: lightbulb.SlashContext):
             color=shiki.Colors.ERROR
         ))
 
-    updatedBalance = sender_data['money'] - ctx.options.amount
-    db.update_document(users, {'_id': sender.id}, {'money': updatedBalance})
-    updatedBalance = recipient_data['money'] + ctx.options.amount
-    db.update_document(users, {'_id': recipient.id}, {'money': updatedBalance})
+    updated_balance = sender_data['money'] - ctx.options.amount
+    db.update_document(users, {'_id': sender.id}, {'money': updated_balance})
+    updated_balance = recipient_data['money'] + ctx.options.amount
+    db.update_document(users, {'_id': recipient.id},
+                       {'money': updated_balance})
 
     await ctx.respond(embed=hikari.Embed(
         title='Выполнено!',
@@ -185,13 +189,13 @@ async def transfer(ctx: lightbulb.SlashContext):
             description='Вы не можете поставить отрицательное количество средств!',
             color=shiki.Colors.ERROR
         ))
-        
-    rDice = random.randint(1,6)
+
+    r_dice = random.randint(1, 6)
     user = ctx.author
     user_data = db.find_document(users, {'_id': user.id})
     newbalance = user_data['money'] - ctx.options.bet
 
-    if(rDice == ctx.options.dice):
+    if(r_dice == ctx.options.dice):
         # Ставка сыграла
         newbalance += ctx.options.bet * 6
         await ctx.respond(embed=hikari.Embed(
@@ -208,9 +212,9 @@ async def transfer(ctx: lightbulb.SlashContext):
         ))
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
     if(ctx.options.bet >= 1000):
-        addXp(user.id,2)
+        add_xp(user.id, 2)
     else:
-        addXp(user.id,1)
+        add_xp(user.id, 1)
 
 
 def load(bot):
