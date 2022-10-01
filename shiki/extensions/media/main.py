@@ -59,13 +59,19 @@ async def media(ctx: lightbulb.SlashContext):
     required=False,
     choices=presets.keys()
 )
+@lightbulb.option(
+    'channel',
+    'Канал в котором будет опубликовано сообщение',
+    hikari.TextableGuildChannel,
+    required=True
+)
 @lightbulb.command(
     'new_embed',
     'Создать новое embed-сообщение'
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def new_embed(ctx: lightbulb.SlashContext):
-    view = embed.EmbedConstructor(timeout=600)
+    view = embed.EmbedConstructor(ctx.options.channel.id, timeout=600)
     msg = await (await ctx.respond(
         embed=hikari.Embed(
             title='Нет заголовка'

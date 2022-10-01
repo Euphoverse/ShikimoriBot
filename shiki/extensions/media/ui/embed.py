@@ -1,4 +1,5 @@
 from datetime import datetime
+import aiohttp
 import hikari
 import miru
 import shiki
@@ -132,36 +133,139 @@ class EditAuthor(miru.Modal):
         await ctx.edit_response(embed=self.embed)
 
 
+# Editing footer
+class EditFooter(miru.Modal):
+    text = miru.TextInput(
+        label='Текст',
+        placeholder='Введите текст футера',
+        required=True, custom_id='text',
+        max_length=2048
+    )
+    icon_url = miru.TextInput(
+        label='Иконка автора',
+        placeholder='Введите ссылку на иконку автора',
+        required=False, custom_id='icon_url'
+    )
+
+    icon_url = miru.TextInput(
+        label='Иконка автора',
+        placeholder='Введите ссылку на иконку автора',
+        required=False, custom_id='icon_url'
+    )
+
+    def __init__(self, embed, *args, **kwargs):
+        self.embed = embed
+        super().__init__(*args, **kwargs)
+
+    async def callback(self, ctx: miru.ModalContext) -> None:
+        for i in ctx.values:
+            if i.custom_id == 'text':
+                text = ctx.values[i] if ctx.values[i] != '' else None
+            elif i.custom_id == 'icon_url':
+                icon_url = ctx.values[i] if ctx.values[i] != '' else None
+        self.embed.set_footer(
+            text,
+            icon=icon_url
+        )
+        await ctx.edit_response(embed=self.embed)
+
+
+# Editing image
+class EditImage(miru.Modal):
+    text = miru.TextInput(
+        label='URL',
+        placeholder='Ссылка на картинку',
+        required=True
+    )
+
+    def __init__(self, embed, *args, **kwargs):
+        self.embed = embed
+        super().__init__(*args, **kwargs)
+
+    async def callback(self, ctx: miru.ModalContext) -> None:
+        self.embed.set_image(
+            image=ctx.values[ctx.values.keys()[0]]
+        )
+        await ctx.edit_response(embed=self.embed)
+
+
+# Editing thumbnail
+class EditThumbnail(miru.Modal):
+    text = miru.TextInput(
+        label='URL',
+        placeholder='Ссылка на картинку',
+        required=True
+    )
+
+    def __init__(self, embed, *args, **kwargs):
+        self.embed = embed
+        super().__init__(*args, **kwargs)
+
+    async def callback(self, ctx: miru.ModalContext) -> None:
+        self.embed.set_thumbnail(
+            image=ctx.values[ctx.values.keys()[0]]
+        )
+        await ctx.edit_response(embed=self.embed)
+
+
 # - Main view
 class EmbedConstructor(miru.View):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, channel, *args, **kwargs):
+        self.channel = channel
         super().__init__(*args, **kwargs)
 
     @miru.button(label='Title, Desc., URL')
-    async def edit_title(self, button: miru.Button, ctx: miru.ViewContext):
+    async def edit_title(self, button: miru.Button, ctx: miru.ViewContext, row=0):
         modal = TitleDesc(ctx.message.embeds[0], 'Заголовок, Описание, Ссылка')
         await ctx.respond_with_modal(modal)
 
-    @miru.select(
-        options=[
-            miru.SelectOption('Ручная установка', 'timestamp',
-                              'Ввести время вручную', emoji='<:color:821446833590894652>'),
-            miru.SelectOption('Автоматическая установка', 'now',
-                              'Установить нынешнее время автоматически', emoji='🤖')
-        ],
-        placeholder='Время'
-    )
-    async def edit_timestamp(self, select: miru.Select, ctx: miru.ViewContext):
-        embed = ctx.message.embeds[0]
-        if select.values[0] == 'now':
-            embed.timestamp = datetime.now().astimezone()
-            await ctx.edit_response(
-                embed=embed
-            )
-            return
-
+    # timestamp
+    @miru.button(label='Руч. время', emoji='<:color:821446833590894652>', row=0)
+    async def timestamp_manual(self, button: miru.Button, ctx: miru.ViewContext):
         modal = Timestamp(ctx.message.embeds[0], 'Установка времени')
         await ctx.respond_with_modal(modal)
+
+    @miru.button(label='Авт. время', emoji='🤖', row=0)
+    async def timestamp_auto(self, button: miru.Button, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        embed.timestamp = datetime.now().astimezone()
+        await ctx.edit_response(
+            embed=embed
+        )
+
+    # author
+    @miru.button(label='Руч. автор', emoji='<:color:821446833590894652>', row=0)
+    async def author_manual(self, button: miru.Button, ctx: miru.ViewContext):
+        modal = EditAuthor(ctx.message.embeds[0], 'Изменение автора')
+        await ctx.respond_with_modal(modal)
+
+    @miru.button(label='Авт. автор', emoji='🤖', row=0)
+    async def author_auto(self, button: miru.Button, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        embed.set_author(
+            name=ctx.user.username,
+            icon=ctx.user.display_avatar_url.url
+        )
+        await ctx.edit_response(
+            embed=embed
+        )
+
+    # footer
+    @miru.button(label='Руч. футер', emoji='<:color:821446833590894652>', row=1)
+    async def footer_manual(self, button: miru.Button, ctx: miru.ViewContext):
+        modal = EditFooter(ctx.message.embeds[0], 'Изменение футера')
+        await ctx.respond_with_modal(modal)
+
+    @miru.button(label='Авт. футер', emoji='🤖', row=1)
+    async def footer_auto(self, button: miru.Button, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        embed.set_footer(
+            ctx.user.username,
+            icon=ctx.user.display_avatar_url.url
+        )
+        await ctx.edit_response(
+            embed=embed
+        )
 
     @miru.select(
         options=[miru.SelectOption(
@@ -187,25 +291,87 @@ class EmbedConstructor(miru.View):
     @miru.select(
         options=[
             miru.SelectOption('Ручная установка', 'manual',
-                              'Установить автора вручную', emoji='<:color:821446833590894652>'),
-            miru.SelectOption('Автоматическая установка', 'auto',
-                              'Установить вас как автора сообщения', emoji='🤖')
+                              'Ввести ссылку вручную', emoji='<:color:821446833590894652>'),
+        ] + [
+            miru.SelectOption('waifu.pics: %s' % c, 'waifupics-%s' % c,
+                              'api.waifu.pics/sfw/%s' % c, emoji='<:waifupics:1025748934624293006>')
+            for c in ('wink', 'dance', 'cuddle', 'cry', 'hug', 'kiss', 'pat', 'bonk', 'blush', 'smile', 'wave', 'highfive', 'nom', 'happy')
         ],
-        placeholder='Автор'
+        placeholder='Изменить картинку'
     )
-    async def edit_author(self, select: miru.Select, ctx: miru.ViewContext):
+    async def edit_image(self, select: miru.Select, ctx: miru.ViewContext):
         embed = ctx.message.embeds[0]
         if select.values[0] == 'manual':
-            modal = EditAuthor(embed, 'Изменение автора')
+            modal = EditImage(embed, 'Изменение картинки')
             await ctx.respond_with_modal(modal)
 
-        embed.set_author(
-            name=ctx.user.username,
-            icon=ctx.user.display_avatar_url.url
+        params = select.values[0].split('-')
+
+        if params[0] == 'waifupics':
+            async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
+                async with s.get('/sfw/%s' % params[-1]) as resp:
+                    if resp.status != 200:
+                        image_url = None
+                    else:
+                        image_url = (await resp.json())['url']
+        else:
+            image_url = None
+
+        embed.set_image(
+            image_url
         )
         await ctx.edit_response(
             embed=embed
         )
+
+    @miru.select(
+        options=[
+            miru.SelectOption('Ручная установка', 'manual',
+                              'Ввести ссылку вручную', emoji='<:color:821446833590894652>'),
+        ] + [
+            miru.SelectOption('waifu.pics: %s' % c, 'waifupics-%s' % c,
+                              'api.waifu.pics/sfw/%s' % c, emoji='<:waifupics:1025748934624293006>')
+            for c in ('wink', 'dance', 'cuddle', 'cry', 'hug', 'kiss', 'pat', 'bonk', 'blush', 'smile', 'wave', 'highfive', 'nom', 'happy')
+        ],
+        placeholder='Изменить превью'
+    )
+    async def edit_thumbnail(self, select: miru.Select, ctx: miru.ViewContext):
+        embed = ctx.message.embeds[0]
+        if select.values[0] == 'manual':
+            modal = EditThumbnail(embed, 'Изменение превью')
+            await ctx.respond_with_modal(modal)
+
+        params = select.values[0].split('-')
+
+        if params[0] == 'waifupics':
+            async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
+                async with s.get('/sfw/%s' % params[-1]) as resp:
+                    if resp.status != 200:
+                        image_url = None
+                    else:
+                        image_url = (await resp.json())['url']
+        else:
+            image_url = None
+
+        embed.set_thumbnail(
+            image_url
+        )
+        await ctx.edit_response(
+            embed=embed
+        )
+
+    # send embed
+    @miru.button(label='Отправить сообщение', emoji='<a:arrow_up:1025758437625315390>')
+    async def done(self, button: miru.Button, ctx: miru.ViewContext):
+        await ctx.bot.rest.create_message(
+            self.channel,
+            embed=ctx.message.embeds[0]
+        )
+        await ctx.respond(embed=hikari.Embed(
+            title='Выполнено',
+            description='Сообщение отправлено в канал <#%s>' % self.channel,
+            color=shiki.Colors.SUCCESS
+        ))
 
     async def on_timeout(self) -> None:
         try:
