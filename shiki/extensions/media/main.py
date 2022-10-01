@@ -26,38 +26,64 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__productname__ = "ShikimoriBot"
-__version__ = "1.0.0a"
-__description__ = "Discord bot coded specially for Euphoverse Discord server"
-__url__ = "https://github.com/JustLian/ShikimoriBot"
-__license__ = "BSD-3-Clause"
-
-# API urls
-WAIFUPICS = 'https://api.waifu.pics'
+import random
+import lightbulb
+import hikari
+from shiki.utils import db, tools
+import shiki
+from .ui import embed
 
 
-# Color palette
-class Colors:
-    ALL_COLORS = ['SUCCESS', 'ERROR', 'WARNING',
-                  'WAIT', 'SPONSOR', 'ANC_HIGH',
-                  'ANC_LOW']
-
-    from hikari import Color
-    SUCCESS = Color.from_hex_code('#f4c0e6')
-    ERROR = Color.from_hex_code('#936cab')
-    WARNING = Color.from_hex_code('#a14e7e')
-    WAIT = Color.from_hex_code('#c0c1cb')
-    SPONSOR = Color.from_hex_code('#95f9e3')
-
-    ANC_HIGH = Color.from_hex_code('#85005f')
-    ANC_LOW = Color.from_hex_code('#a2a5ff')
+cfg = tools.load_file('config')
+presets = tools.load_file('embed_presets')
+users = db.connect().get_database('shiki').get_collection('users')
+plugin = lightbulb.Plugin("MediaBroadcasts")
 
 
-IMAGES = {
-    'thinking': [
-        'https://i.postimg.cc/gkdj26fd/image-2022-09-18-144207362.png'
-    ],
-    'angry': [
-        'https://i.postimg.cc/66CVPnrN/tumblr-634f81dd0aeb75229b16b7c3374fbf22-695744b4-540-1.gif'
-    ]
-}
+@plugin.command
+@lightbulb.command(
+    'media',
+    'Команды связанные с медиа',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
+async def media(ctx: lightbulb.SlashContext):
+    # Command group /media
+    pass
+
+
+@media.child
+@lightbulb.option(
+    'preset',
+    'Пресет который вы желаете использовать',
+    required=False,
+    choices=presets.keys()
+)
+@lightbulb.option(
+    'channel',
+    'Канал в котором будет опубликовано сообщение',
+    hikari.TextableGuildChannel,
+    required=True
+)
+@lightbulb.command(
+    'new_embed',
+    'Создать новое embed-сообщение'
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def new_embed(ctx: lightbulb.SlashContext):
+    view = embed.EmbedConstructor(ctx.options.channel.id, timeout=600)
+    msg = await (await ctx.respond(
+        embed=hikari.Embed(
+            title='Нет заголовка'
+        ),
+        components=view
+    )).message()
+    await view.start(msg)
+
+
+def load(bot):
+    bot.add_plugin(plugin)
+
+
+def unload(bot):
+    bot.remove_plugin(plugin)
