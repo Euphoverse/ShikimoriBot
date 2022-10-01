@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from datetime import datetime, timedelta
 import random
 import lightbulb
 import hikari
@@ -37,6 +38,7 @@ import shiki
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
+currency_emoji = cfg['emojis']['currency']
 
 
 def add_xp(id, amount):
@@ -101,7 +103,7 @@ async def profile(ctx: lightbulb.SlashContext):
     em.add_field('Уровень', data['level'], inline=True)
     em.add_field('Опыт', '%s/%s' %
                  (data['xp'], tools.calc_xp(data['level'] + 1)), inline=True)
-    em.add_field('Баланс', data['money'], inline=True)
+    em.add_field('Баланс', f'{data["money"]}{currency_emoji}', inline=True)
     em.add_field('Приглашений', data['invites'], inline=True)
 
     await ctx.respond(embed=em)
@@ -156,7 +158,7 @@ async def transfer(ctx: lightbulb.SlashContext):
 
     await ctx.respond(embed=hikari.Embed(
         title='Выполнено!',
-        description=f'Успешно переведено {ctx.options.amount} {recipient.username}!',
+        description=f'Успешно переведено {ctx.options.amount}{currency_emoji} {recipient.username}!',
         color=shiki.Colors.SUCCESS
     ))
 
@@ -226,6 +228,36 @@ async def dice(ctx: lightbulb.SlashContext):
                  ))
 
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
+
+
+@economy.child
+@lightbulb.command(
+    'daily',
+    'Получить ежедневный бонус',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def dice(ctx: lightbulb.SlashContext):
+    user = ctx.author
+    data = db.find_document(users, {'_id': user.id})
+    bonus = random.randint(203, 210)
+    add_xp(user.id, 5)
+    if(data['last_daily'] == 0) or (datetime.now() - data['last_daily'] > timedelta(days=1)):
+        db.update_document(users, {'_id': user.id},
+                           {'money': data['money'] + bonus,
+                           'last_daily': datetime.now()})
+        await ctx.respond(embed=hikari.Embed(
+            title='Бонус',
+            description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
+            color=shiki.Colors.SUCCESS
+        ))
+    else:
+        time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
+        await ctx.respond(embed=hikari.Embed(
+            title='Не так быстро!',
+            description=f'Ежедневный бонус будет доступен через: {str(time_left).split(".")[0]}.',
+            color=shiki.Colors.SUCCESS
+        ))
 
 
 def load(bot):

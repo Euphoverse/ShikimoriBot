@@ -17,7 +17,8 @@
             "sponsor": null,
             "donated": 0,
             "invites": 0,
-            "lobbies": []
+            "lobbies": [],
+            "last_daily": 0
         }
     },
     "mod_roles": [
@@ -25,6 +26,9 @@
         "mod",
         "sr_mod"
     ],
+    "emojis": {
+        "currency": "🪥"
+    },
     "time_format": "%Y-%m-%dT%H:%M:%S",
     "test": {
         "guild": 1011596264523178017,
