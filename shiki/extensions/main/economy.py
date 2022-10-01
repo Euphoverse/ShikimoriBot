@@ -40,22 +40,27 @@ plugin = lightbulb.Plugin("Economy")
 currency_emoji = cfg['emojis']['currency']
 
 
-def add_xp(id, amount):
-    data = db.find_document(users, {'_id': id})
+async def add_xp(user, amount, ctx):
+    data = db.find_document(users, {'_id': user.id})
     xp = data['xp']
-
     xp += amount
     needed_xp = tools.calc_xp(data['level'] + 1)
-
-    levelup = False
-
+    reward = 0
     if(xp >= needed_xp):
         xp -= needed_xp
         data['level'] += 1
-        levelup = True
+        reward = data['level'] * 25 + 100
+        await ctx.get_guild()\
+                 .get_channel(cfg[cfg['mode']]['channels']['actions'])\
+                 .send(user.mention, embed=hikari.Embed(
+                     title='Повышение уровня',
+                     description=f'{user.username} достиг **{data["level"]}** уровня! Награда: **{reward}**{currency_emoji}',
+                     color=shiki.Colors.SUCCESS
+                 ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
 
-    db.update_document(users, {'_id': id}, {'level': data['level'], 'xp': xp})
-    return levelup
+    db.update_document(users, {'_id': user.id}, {'level': data['level'], 
+                                            'xp': xp,
+                                            'money': data['money'] + reward})
 
 
 @plugin.command
@@ -102,7 +107,7 @@ async def profile(ctx: lightbulb.SlashContext):
     em.add_field('Всего пожертвовано', data['donated'], inline=True)
     em.add_field('Уровень', data['level'], inline=True)
     em.add_field('Опыт', '%s/%s' %
-                 (data['xp'], round(tools.calc_xp(data['level'] + 1))), inline=True)
+                 (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
     em.add_field('Баланс', f'{data["money"]}{currency_emoji}', inline=True)
     em.add_field('Приглашений', data['invites'], inline=True)
 
@@ -209,25 +214,12 @@ async def dice(ctx: lightbulb.SlashContext):
         ).set_footer(text=f'{user.username} сыграл в кости', icon=user.display_avatar_url.url)
         .add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
         f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
+    db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
-        levelup = add_xp(user.id, 3)
+        await add_xp(user, 5, ctx)
     else:
-        levelup = add_xp(user.id, 1)
-    if(levelup == True):
-        newlevel = db.find_document(users, {'_id': user.id})['level']
-        reward = newlevel * 25 + 100
-        newbalance += reward
-        name = user.username
-        await ctx.get_guild()\
-                 .get_channel(cfg[cfg['mode']]['channels']['actions'])\
-                 .send(user.mention, embed=hikari.Embed(
-                     title='Повышение уровня',
-                     description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**{currency_emoji}',
-                     color=shiki.Colors.SUCCESS
-                 ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
-
-    db.update_document(users, {'_id': user.id}, {'money': newbalance})
+        await add_xp(user, 1, ctx)
 
 
 @economy.child
@@ -241,7 +233,7 @@ async def daily(ctx: lightbulb.SlashContext):
     user = ctx.author
     data = db.find_document(users, {'_id': user.id})
     bonus = random.randint(203, 210)
-    add_xp(user.id, 5)
+    await add_xp(user, 10, ctx)
     if(data['last_daily'] == 0) or (datetime.now() - data['last_daily'] > timedelta(days=1)):
         db.update_document(users, {'_id': user.id},
                            {'money': data['money'] + bonus,
