@@ -90,7 +90,7 @@ class EditColor(miru.Modal):
 
     async def callback(self, ctx: miru.ModalContext) -> None:
         self.embed.color = hikari.Color.from_hex_code(
-            list(ctx.values.items())[0])
+            list(ctx.values.items())[0][1])
         await ctx.edit_response(embed=self.embed)
 
 
