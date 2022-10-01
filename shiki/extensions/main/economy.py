@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from dis import disco
 import random
 import lightbulb
 import hikari
@@ -40,9 +41,21 @@ plugin = lightbulb.Plugin("Economy")
 
 
 def addXp(id, amount):
-    xp = db.find_document(users, {'_id': id})['xp']
+    data = db.find_document(users, {'_id': id})
+    xp = data['xp']
+
     xp += amount
-    db.update_document(users, {'_id': id}, {'xp': xp})
+    neededXp = tools.calc_xp(data['level'] + 1)
+
+    levelup = False
+
+    if(xp >= neededXp):
+        xp -= neededXp
+        data['level'] += 1
+        levelup = True
+
+    db.update_document(users, {'_id': id}, {'level': data['level'],'xp': xp})
+    return levelup
 
 
 @plugin.command
@@ -196,21 +209,35 @@ async def transfer(ctx: lightbulb.SlashContext):
         newbalance += ctx.options.bet * 6
         await ctx.respond(embed=hikari.Embed(
             title='Победа',
-            description=f'Вы очень удачливы! Вы выиграли {ctx.options.bet * 6}.',
+            description=f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
             color=shiki.Colors.SUCCESS
         ))
     else:
         # Ставка проиграна
         await ctx.respond(embed=hikari.Embed(
             title='Проигрыш',
-            description=f'Увы, ваша ставка не сыграла. Вы проиграли {ctx.options.bet}.',
+            description=f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
             color=shiki.Colors.ERROR
         ))
-    db.update_document(users, {'_id': user.id}, {'money': newbalance})
+    
     if(ctx.options.bet >= 1000):
-        addXp(user.id,2)
+        levelup = addXp(user.id,100)
     else:
-        addXp(user.id,1)
+        levelup = addXp(user.id,25)
+    if(levelup == True):
+        newlevel = db.find_document(users, {'_id': user.id})['level']
+        reward = newlevel * 25 + 100
+        newbalance += reward
+        name = user.username
+        await ctx.get_guild()\
+                 .get_channel(cfg[cfg['mode']]['channels']['actions'])\
+                 .send(user.mention, embed=hikari.Embed(
+                    title='Повышение уровня',
+                    description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**',
+                    color=shiki.Colors.SUCCESS
+                 ))
+
+    db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
 
 def load(bot):
