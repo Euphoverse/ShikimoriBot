@@ -224,15 +224,9 @@ async def transfer(ctx: lightbulb.SlashContext):
         ))
 
     if(ctx.options.bet >= 1000):
-<<<<<<< HEAD
-        levelup = addXp(user.id, 3)
+        levelup = add_xp(user.id, 3)
     else:
-        levelup = addXp(user.id, 1)
-=======
-        levelup = add_xp(user.id, 100)
-    else:
-        levelup = add_xp(user.id, 25)
->>>>>>> 1e1d5d3b1e1b5d9ac73fd59aa4a60818e418a711
+        levelup = add_xp(user.id, 1)
     if(levelup == True):
         newlevel = db.find_document(users, {'_id': user.id})['level']
         reward = newlevel * 25 + 100
