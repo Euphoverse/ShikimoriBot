@@ -162,7 +162,7 @@ async def transfer(ctx: lightbulb.SlashContext):
 
 
 @economy.child
-@lightbulb.add_cooldown(180, 5, lightbulb.UserBucket)
+@lightbulb.add_cooldown(90, 5, lightbulb.UserBucket)
 @lightbulb.option(
     'dice',
     'Номер кости (от 1 до 6)',
@@ -195,16 +195,18 @@ async def dice(ctx: lightbulb.SlashContext):
         newbalance += ctx.options.bet * 6
         await ctx.respond(embed=hikari.Embed(
             title='Победа',
-            description=f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
             color=shiki.Colors.SUCCESS
-        ))
+        ).add_field(f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
+        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False)
+        )
     else:
         # Ставка проиграна
         await ctx.respond(embed=hikari.Embed(
             title='Проигрыш',
-            description=f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
             color=shiki.Colors.ERROR
-        ))
+        ).add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
+        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False)
+        )
 
     if(ctx.options.bet >= 1000):
         levelup = add_xp(user.id, 3)
