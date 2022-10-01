@@ -26,7 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from dis import disco
 import random
 import lightbulb
 import hikari
@@ -169,6 +168,7 @@ async def transfer(ctx: lightbulb.SlashContext):
 
 
 @economy.child
+@lightbulb.add_cooldown(180, 5, lightbulb.UserBucket)
 @lightbulb.option(
     'dice',
     'Номер кости (от 1 до 6)',
@@ -224,9 +224,9 @@ async def transfer(ctx: lightbulb.SlashContext):
         ))
 
     if(ctx.options.bet >= 1000):
-        levelup = add_xp(user.id, 100)
+        levelup = add_xp(user.id, 3)
     else:
-        levelup = add_xp(user.id, 25)
+        levelup = add_xp(user.id, 1)
     if(levelup == True):
         newlevel = db.find_document(users, {'_id': user.id})['level']
         reward = newlevel * 25 + 100
