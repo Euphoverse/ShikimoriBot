@@ -40,8 +40,7 @@ plugin = lightbulb.Plugin("Admin")
 
 
 @plugin.command
-# @lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
-@lightbulb.add_checks(lightbulb.owner_only)
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.command(
     'admin',
     'Команды для администраторов',
@@ -54,6 +53,7 @@ async def admin(ctx: lightbulb.SlashContext):
 
 
 @admin.child
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Получатель халявы',
