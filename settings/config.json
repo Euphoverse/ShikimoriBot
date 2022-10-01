@@ -27,7 +27,8 @@
         "sr_mod"
     ],
     "emojis": {
-        "currency": "🪥"
+        "currency": "🪥",
+        "access_denied": "❌"
     },
     "time_format": "%Y-%m-%dT%H:%M:%S",
     "test": {
