@@ -30,7 +30,6 @@ from datetime import datetime, timedelta
 import random
 import lightbulb
 import hikari
-import logging
 from shiki.utils import db, tools
 import shiki
 
@@ -92,17 +91,18 @@ async def profile(ctx: lightbulb.SlashContext):
 
     data = db.find_document(users, {'_id': user.id})
     em = hikari.Embed(
-        title='Профиль пользователя',
+        title=f'Профиль пользователя {user.username}',
         color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
     )
-    em.set_author(name=str(user), icon=user.display_avatar_url.url)
+    em.set_footer(text=f'Запросил {ctx.author.username}', icon=ctx.author.display_avatar_url.url)
+    em.set_thumbnail(user.display_avatar_url.url)
 
     em.add_field(
         'Спонсорка', 'нет' if data['sponsor'] is None else 'активна с ' + data['sponsor'])
     em.add_field('Всего пожертвовано', data['donated'], inline=True)
     em.add_field('Уровень', data['level'], inline=True)
     em.add_field('Опыт', '%s/%s' %
-                 (data['xp'], tools.calc_xp(data['level'] + 1)), inline=True)
+                 (data['xp'], round(tools.calc_xp(data['level'] + 1))), inline=True)
     em.add_field('Баланс', f'{data["money"]}{currency_emoji}', inline=True)
     em.add_field('Приглашений', data['invites'], inline=True)
 
@@ -138,7 +138,7 @@ async def transfer(ctx: lightbulb.SlashContext):
             title='Ошибка',
             description='Вы не можете перевести деньги самому себе!',
             color=shiki.Colors.ERROR
-        ))
+        ).set_footer(text=str(sender), icon=sender.display_avatar_url.url))
 
     sender_data = db.find_document(users, {'_id': sender.id})
     recipient_data = db.find_document(users, {'_id': recipient.id})
@@ -148,7 +148,7 @@ async def transfer(ctx: lightbulb.SlashContext):
             title='Ошибка',
             description='Недостаточно средств!',
             color=shiki.Colors.ERROR
-        ))
+        ).set_footer(text=str(sender), icon=sender.display_avatar_url.url))
 
     updated_balance = sender_data['money'] - ctx.options.amount
     db.update_document(users, {'_id': sender.id}, {'money': updated_balance})
@@ -160,7 +160,7 @@ async def transfer(ctx: lightbulb.SlashContext):
         title='Выполнено!',
         description=f'Успешно переведено {ctx.options.amount}{currency_emoji} {recipient.username}!',
         color=shiki.Colors.SUCCESS
-    ))
+    ).set_footer(text=f'Отправитель: {sender.username}', icon=sender.display_avatar_url.url))
 
 
 @economy.child
@@ -198,17 +198,17 @@ async def dice(ctx: lightbulb.SlashContext):
         await ctx.respond(embed=hikari.Embed(
             title='Победа',
             color=shiki.Colors.SUCCESS
-        ).add_field(f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
-        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False)
-        )
+        ).set_footer(text=f'{user.username} сыграл в кости', icon=user.display_avatar_url.url)
+        .add_field(f'Вы очень удачливы! Вы выиграли **{ctx.options.bet * 6}**.',
+        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
     else:
         # Ставка проиграна
         await ctx.respond(embed=hikari.Embed(
             title='Проигрыш',
             color=shiki.Colors.ERROR
-        ).add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
-        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False)
-        )
+        ).set_footer(text=f'{user.username} сыграл в кости', icon=user.display_avatar_url.url)
+        .add_field(f'Увы, ваша ставка не сыграла. Вы проиграли **{ctx.options.bet}**.',
+        f'Выпало **{r_dice}**\nВы поставили на **{ctx.options.dice}**', inline=False))
 
     if(ctx.options.bet >= 1000):
         levelup = add_xp(user.id, 3)
@@ -225,7 +225,7 @@ async def dice(ctx: lightbulb.SlashContext):
                      title='Повышение уровня',
                      description=f'{name} достиг **{newlevel}** уровня! Награда: **{reward}**',
                      color=shiki.Colors.SUCCESS
-                 ))
+                 ).set_footer(text='Повышение уровня', icon=user.display_avatar_url.url))
 
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
@@ -237,7 +237,7 @@ async def dice(ctx: lightbulb.SlashContext):
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def dice(ctx: lightbulb.SlashContext):
+async def daily(ctx: lightbulb.SlashContext):
     user = ctx.author
     data = db.find_document(users, {'_id': user.id})
     bonus = random.randint(203, 210)
@@ -250,14 +250,14 @@ async def dice(ctx: lightbulb.SlashContext):
             title='Бонус',
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
-        ))
+        ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(
             title='Не так быстро!',
             description=f'Ежедневный бонус будет доступен через: {str(time_left).split(".")[0]}.',
             color=shiki.Colors.SUCCESS
-        ))
+        ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
 
 
 def load(bot):
