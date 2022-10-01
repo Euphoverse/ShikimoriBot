@@ -32,9 +32,10 @@ import logging
 from shiki.utils import db, tools
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("UserInit")
+_LOG = logging.getLogger('extensions.main.user_init')
 
 
 async def assign_mod(member: hikari.Member):
@@ -50,7 +51,7 @@ async def ready_listener(_):
             continue
         data = db.find_document(users, {'_id': member.id})
         if data is None:
-            logging.warning(
+            _LOG.warning(
                 f'creating document of user {member.id} ({member})')
             db.insert_document(
                 users, {'_id': member.id, **cfg['db_defaults']['users']})
@@ -58,7 +59,7 @@ async def ready_listener(_):
         else:
             for key in cfg['db_defaults']['users'].keys():
                 if key not in data:
-                    logging.warning(
+                    _LOG.warning(
                         'missing key "%s" in document of user %s (%s)' % (key, str(member), str(member.id)))
                     db.update_document(users, {'_id': member.id}, {
                                        key: cfg['db_defaults']['users'][key]})

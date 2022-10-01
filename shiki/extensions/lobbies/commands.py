@@ -35,7 +35,7 @@ import shiki
 from .ui import control
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("LobbiesCommands")
 
@@ -218,7 +218,7 @@ async def add(ctx: lightbulb.SlashContext):
 )
 @lightbulb.command(
     'remove',
-    'Удрать пользователя из лобби'
+    'Убрать пользователя из лобби'
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def remove(ctx: lightbulb.SlashContext):
