@@ -38,6 +38,7 @@ cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 currency_emoji = cfg['emojis']['currency']
+emoji_denied = cfg['emojis']['access_denied']
 
 
 @plugin.command
@@ -174,6 +175,14 @@ async def dice(ctx: lightbulb.SlashContext):
     user = ctx.author
     user_data = db.find_document(users, {'_id': user.id})
     newbalance = user_data['money'] - ctx.options.bet
+
+    if(newbalance < 0):
+        await ctx.respond(embed=hikari.Embed(
+            title='Недостаточно средств',
+            description='Вы не можете поставить больше, чем у вас на балансе',
+            color=shiki.Colors.ERROR
+        ).set_footer(text=f'{emoji_denied} Недостаточно средств'))
+        return
 
     if(r_dice == ctx.options.dice):
         # Ставка сыграла
