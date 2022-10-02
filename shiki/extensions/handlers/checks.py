@@ -57,9 +57,9 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
 
     await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
             color=shiki.Colors.ERROR
-        ).set_author(name='Офицальный сервер', url='https://discord.gg/3s7mnTm9Xt')
+        ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
          .set_footer(text=f'{emoji_denied} Ошибка')
-         .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков. Скоро проблема будет решена')
+         .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков.\nСкоро проблема будет решена!')
     )
     
     await plugin.bot.rest.create_message(

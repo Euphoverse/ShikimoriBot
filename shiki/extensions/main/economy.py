@@ -81,13 +81,13 @@ async def profile(ctx: lightbulb.SlashContext):
     em.set_thumbnail(user.display_avatar_url.url)
 
     em.add_field(
-        'Спонсорка', 'нет' if data['sponsor'] is None else 'активна с ' + data['sponsor'])
-    em.add_field('Всего пожертвовано', data['donated'], inline=True)
-    em.add_field('Уровень', data['level'], inline=True)
-    em.add_field('Опыт', '%s/%s' %
+        'Спонсорка', '```Отсутствует```' if data['sponsor'] is None else '```Активна с ' + data['sponsor'] + '```')
+    em.add_field('Всего пожертвовано', f"```{data['donated']} рублей```", inline=True)
+    em.add_field('Уровень', f"```{data['level']}```", inline=True)
+    em.add_field('Опыт', '```%s/%s```' %
                  (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
-    em.add_field('Баланс', f'{data["money"]}{currency_emoji}', inline=True)
-    em.add_field('Приглашений', data['invites'], inline=True)
+    em.add_field('Баланс', f'```{data["money"]}{currency_emoji}```', inline=True)
+    em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
 
     await ctx.respond(embed=em)
 
