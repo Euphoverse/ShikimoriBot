@@ -70,6 +70,8 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
          .add_field('Получена неизвестная ошибка', event.exception)
     )
 
+    raise event.exception
+
 
 def load(bot):
     bot.add_plugin(plugin)

@@ -27,11 +27,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from datetime import datetime, timedelta
+from nturl2path import url2pathname
 import random
 import lightbulb
 import hikari
 from shiki.utils import db, tools
 import shiki
+import matplotlib.pyplot as plt
 
 
 cfg = tools.load_data('./settings/config')
@@ -228,6 +230,21 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Ежедневный бонус будет доступен через: {str(time_left).split(".")[0]}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
+
+
+@economy.child
+@lightbulb.command(
+    'test',
+    'Test command',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def graph(ctx: lightbulb.SlashContext):
+    plt.plot([5, 2, 11, 4])
+    plt.xlabel('some numbers')
+    plt.savefig('graphs/graph.png')
+    f = hikari.File('./graphs/graph.png')
+    await ctx.respond(f)
 
 
 def load(bot):
