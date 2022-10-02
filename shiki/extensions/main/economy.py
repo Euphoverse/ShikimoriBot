@@ -204,9 +204,9 @@ async def dice(ctx: lightbulb.SlashContext):
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
-        await tools.add_xp(user, 5, ctx)
+        await tools.add_xp(user, 50, ctx)
     else:
-        await tools.add_xp(user, 1, ctx)
+        await tools.add_xp(user, 8, ctx)
 
 
 @economy.child
@@ -229,7 +229,7 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
-        await tools.add_xp(user, 10, ctx)
+        await tools.add_xp(user, 40, ctx)
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(

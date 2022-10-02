@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 import lightbulb
 import hikari
 from shiki.utils import db, tools
@@ -53,6 +54,15 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
             color=shiki.Colors.ERROR
         ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
+        return
+
+    if isinstance(event.exception, lightbulb.errors.CommandInvocationError) and\
+        isinstance(event.exception.original, asyncio.TimeoutError):
+        await event.context.edit_last_response(embed=hikari.Embed(
+            title='Отменено',
+            description=f'Действие было отменено в связи с долгим ожиданием ответа',
+            color=shiki.Colors.ERROR
+        ).set_footer(text=f'{emoji_denied} Превышено время ожидания'))
         return
 
     await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(

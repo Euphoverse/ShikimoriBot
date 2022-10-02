@@ -96,7 +96,7 @@ async def add_money(ctx: lightbulb.SlashContext):
     'user',
     'Жертва',
     hikari.Member,
-    required=False
+    required=True
 )
 @lightbulb.command(
     'reset',
@@ -120,7 +120,7 @@ async def resetUser(ctx: lightbulb.SlashContext):
     while True:
         event = await plugin.bot.wait_for(
             hikari.GuildMessageCreateEvent,
-            timeout=5
+            timeout=10
         )
         if check():
             break
