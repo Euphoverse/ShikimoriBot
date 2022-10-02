@@ -31,6 +31,7 @@ import lightbulb
 import hikari
 from shiki.utils import db, tools
 import shiki
+import traceback
 
 
 cfg = tools.load_data('./settings/config')
@@ -57,7 +58,7 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         return
 
     if isinstance(event.exception, lightbulb.errors.CommandInvocationError) and\
-        isinstance(event.exception.original, asyncio.TimeoutError):
+            isinstance(event.exception.original, asyncio.TimeoutError):
         await event.context.edit_last_response(embed=hikari.Embed(
             title='Отменено',
             description=f'Действие было отменено в связи с долгим ожиданием ответа',
@@ -66,18 +67,27 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
         return
 
     await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
-            color=shiki.Colors.ERROR
-        ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
-         .set_footer(text=f'{emoji_denied} Ошибка')
-         .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков.\nСкоро проблема будет решена!')
+        color=shiki.Colors.ERROR
+    ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
+        .set_footer(text=f'{emoji_denied} Ошибка')
+        .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков.\nСкоро проблема будет решена!')
     )
-    
+
     await plugin.bot.rest.create_message(
         channel=cfg[cfg['mode']]['channels']['errors'],
         embed=hikari.Embed(
+            description='```' +
+            '\n'.join(traceback.format_exception(event.exception)) + '```',
             color=shiki.Colors.ERROR
         ).set_footer(text=f'{emoji_denied} Ошибка')
-         .add_field('Получена неизвестная ошибка', event.exception)
+         .add_field('Сервер', '%s (%s)' % (
+             event.context.get_guild().name,
+             event.context.guild_id
+         ))
+        .add_field('Пользователь', '%s (%s)' % (
+            event.context.user,
+            event.context.user.id
+        ))
     )
 
 
