@@ -40,6 +40,7 @@ cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 currency_emoji = cfg['emojis']['currency']
+emoji_denied = cfg['emojis']['access_denied']
 
 
 @plugin.command
@@ -177,6 +178,14 @@ async def dice(ctx: lightbulb.SlashContext):
     user_data = db.find_document(users, {'_id': user.id})
     newbalance = user_data['money'] - ctx.options.bet
 
+    if(newbalance < 0):
+        await ctx.respond(embed=hikari.Embed(
+            title='Недостаточно средств',
+            description='Вы не можете поставить больше, чем у вас на балансе',
+            color=shiki.Colors.ERROR
+        ).set_footer(text=f'{emoji_denied} Недостаточно средств'))
+        return
+
     if(r_dice == ctx.options.dice):
         # Ставка сыграла
         newbalance += ctx.options.bet * 6
@@ -197,9 +206,9 @@ async def dice(ctx: lightbulb.SlashContext):
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
-        await tools.add_xp(user, 5, ctx)
+        await tools.add_xp(user, 50, ctx)
     else:
-        await tools.add_xp(user, 1, ctx)
+        await tools.add_xp(user, 10, ctx)
 
 
 @economy.child
@@ -222,7 +231,7 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
-        await tools.add_xp(user, 10, ctx)
+        await tools.add_xp(user, 50, ctx)
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(
@@ -234,14 +243,26 @@ async def daily(ctx: lightbulb.SlashContext):
 
 @economy.child
 @lightbulb.command(
-    'test',
-    'Test command',
+    'statistic',
+    'Показывает статистику вашего баланса в течении времени',
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def graph(ctx: lightbulb.SlashContext):
-    plt.plot([5, 2, 11, 4])
-    plt.xlabel('some numbers')
+async def statistic(ctx: lightbulb.SlashContext):
+    user = ctx.author
+    data = db.find_document(users, {'_id': user.id})
+    x = [0]
+    y = [0]
+    for sdata in data['money_track']['history']:
+        x.append(sdata['time'])
+        y.append(sdata['balance'])
+    y[-1] = data['money']
+    graph, plot2 = plt.subplots(1)
+    plot2.plot(x, y)
+    plot2.set_title("История баланса")
+    plot2.set_xlabel('Дней с начала отсчёта')
+    plot2.set_ylabel('Баланс')
+    graph.tight_layout()
     plt.savefig('graphs/graph.png')
     f = hikari.File('./graphs/graph.png')
     await ctx.respond(f)

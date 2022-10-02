@@ -63,7 +63,13 @@ def find_document(collection, elements, multiple=False):
 
 
 def update_document(collection, query_elements, new_values, reset=False):
-    """ Function to update a single document in a collection."""
+    """ Function to update a single document in a collection and track some updates."""
+    track(collection, query_elements, new_values, reset=False)
+    collection.update_one(query_elements, {'$set': new_values})
+
+
+def track(collection, query_elements, new_values, reset=False):
+    """ Track for balance updates."""
     if(reset == False) and\
       (query_elements['_id']) and\
       (new_values['money']):
@@ -75,7 +81,6 @@ def update_document(collection, query_elements, new_values, reset=False):
             list['history'].append({"time": time_since_start,
                                     "balance": new_values['money']})
         new_values['money_track'] = list
-    collection.update_one(query_elements, {'$set': new_values})
 
 
 def delete_document(collection, query):
