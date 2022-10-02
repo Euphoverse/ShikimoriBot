@@ -58,46 +58,6 @@ async def economy(ctx: lightbulb.SlashContext):
     'user',
     'Пользователь',
     hikari.Member,
-    required=False
-)
-@lightbulb.command(
-    'profile',
-    'Просмотреть профиль пользователя',
-    auto_defer=True
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def profile(ctx: lightbulb.SlashContext):
-    if ctx.options.user is None:
-        user = ctx.author
-    else:
-        user = ctx.options.user
-
-    data = db.find_document(users, {'_id': user.id})
-    em = hikari.Embed(
-        title=f'Профиль пользователя {user.username}',
-        color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
-    )
-    em.set_footer(text=f'Запросил {ctx.author.username}',
-                  icon=ctx.author.display_avatar_url.url)
-    em.set_thumbnail(user.display_avatar_url.url)
-
-    em.add_field(
-        'Спонсорка', '```Отсутствует```' if data['sponsor'] is None else '```Активна с ' + data['sponsor'] + '```')
-    em.add_field('Всего пожертвовано', f"```{data['donated']} рублей```", inline=True)
-    em.add_field('Уровень', f"```{data['level']}```", inline=True)
-    em.add_field('Опыт', '```%s/%s```' %
-                 (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
-    em.add_field('Баланс', f'```{data["money"]}{currency_emoji}```', inline=True)
-    em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
-
-    await ctx.respond(embed=em)
-
-
-@economy.child
-@lightbulb.option(
-    'user',
-    'Пользователь',
-    hikari.Member,
     required=True
 )
 @lightbulb.option(
@@ -117,12 +77,19 @@ async def transfer(ctx: lightbulb.SlashContext):
     sender = ctx.author
     recipient = ctx.options.user
 
+    if recipient.is_bot:
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description='Вы не можете перевести деньги боту!',
+            color=shiki.Colors.ERROR
+        ).set_footer(text=f'{emoji_denied} Некорректные данные'))
+
     if(sender.id == recipient.id):
         return await ctx.respond(embed=hikari.Embed(
             title='Ошибка',
             description='Вы не можете перевести деньги самому себе!',
             color=shiki.Colors.ERROR
-        ).set_footer(text=str(sender), icon=sender.display_avatar_url.url))
+        ).set_footer(text=f'{emoji_denied} Некорректные данные'))
 
     sender_data = db.find_document(users, {'_id': sender.id})
     recipient_data = db.find_document(users, {'_id': recipient.id})
@@ -130,9 +97,9 @@ async def transfer(ctx: lightbulb.SlashContext):
     if(sender_data['money'] < ctx.options.amount):
         return await ctx.respond(embed=hikari.Embed(
             title='Ошибка',
-            description='Недостаточно средств!',
+            description='Вы не можете отправить больше, чем у вас на балансе!',
             color=shiki.Colors.ERROR
-        ).set_footer(text=str(sender), icon=sender.display_avatar_url.url))
+        ).set_footer(text=f'{emoji_denied} Недостаточно средств'))
 
     updated_balance = sender_data['money'] - ctx.options.amount
     db.update_document(users, {'_id': sender.id}, {'money': updated_balance})
@@ -236,7 +203,7 @@ async def daily(ctx: lightbulb.SlashContext):
             title='Не так быстро!',
             description=f'Ежедневный бонус будет доступен через: {str(time_left).split(".")[0]}.',
             color=shiki.Colors.SUCCESS
-        ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
+        ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
 
 
 def load(bot):

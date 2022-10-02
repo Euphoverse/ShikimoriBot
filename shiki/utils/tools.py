@@ -87,6 +87,7 @@ def embed_from_dict(data: dict) -> Embed:
 
 def calc_xp(lvl):
     '''Calculates amount of xp needed to levelup'''
+    lvl -= 1
     return ((2 * lvl ** 2 + 27 * lvl + 91) * lvl * 5) / 6
 
 
@@ -155,7 +156,7 @@ async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
         xp -= needed_xp
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
-        reward = data['level'] * 25 + 100
+        reward = calc_coins(data['level'])
         await ctx.bot.rest.create_message(
             channel=cfg[cfg['mode']]['channels']['actions'],
             embed=Embed(

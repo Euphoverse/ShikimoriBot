@@ -2,7 +2,7 @@
     "mode": "test",
     "db_defaults": {
         "users": {
-            "level": 0,
+            "level": 1,
             "xp": 0,
             "money": 0,
             "mod": null,
@@ -41,7 +41,7 @@
             "errors": 1025782656459358278
         },
         "roles": {
-            "events_manager": 1011596264917454865,
+            "events_manager": 1011596265018097687,
             "helper": 1011596264917454862,
             "mod": 1011596264917454862,
             "sr_mod": 1011596264917454867,
