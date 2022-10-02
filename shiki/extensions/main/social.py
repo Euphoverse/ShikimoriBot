@@ -94,7 +94,7 @@ async def profile(ctx: lightbulb.SlashContext):
     'Тип списка',
     str,
     required=True,
-    choices=['level', 'money', 'donated', 'invites']
+    choices=['xp', 'money', 'donated', 'invites']
 )
 @lightbulb.command(
     'leaderboard',
@@ -124,6 +124,7 @@ async def leaderboard(ctx: lightbulb.SlashContext):
     if type == 'money': suff = currency_emoji
     for sdata in data:
         pref = ''
+        if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[sdata])}'
         if index == 3: pref = "🥉 "
         if index == 2: pref = "🥈 "
         if index == 1: pref = "🥇 "

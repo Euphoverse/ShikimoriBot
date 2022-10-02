@@ -91,6 +91,14 @@ def calc_xp(lvl):
     return ((2 * lvl ** 2 + 27 * lvl + 91) * lvl * 5) / 6
 
 
+def calc_lvl(xp):
+    '''Calculates level from amount of xp'''
+    level = 0
+    while xp > calc_xp(level + 1):
+        level += 1
+    return level
+
+
 def embed_img(embed: Embed, img: str) -> dict:
     '''Adds local image to embed and returns kwargs needed to send embed'''
     embed.set_thumbnail(url='attachment://' + img.split('/')[-1])
@@ -153,7 +161,6 @@ async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
     reward = 0
 
     while xp >= needed_xp:
-        xp -= needed_xp
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
         reward = calc_coins(data['level'])
