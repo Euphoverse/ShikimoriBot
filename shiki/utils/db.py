@@ -29,6 +29,7 @@
 from pymongo.mongo_client import MongoClient
 import dotenv
 import os
+import time
 
 
 dotenv.load_dotenv()
@@ -61,8 +62,19 @@ def find_document(collection, elements, multiple=False):
         return collection.find_one(elements)
 
 
-def update_document(collection, query_elements, new_values):
+def update_document(collection, query_elements, new_values, reset=False):
     """ Function to update a single document in a collection."""
+    if(reset == False) and\
+      (query_elements['_id']) and\
+      (new_values['money']):
+        list = find_document(collection, query_elements)['money_track']
+        if(list['start_point'] == 0):
+            list['start_point'] = round(time.time()/60)
+        time_since_start = round(time.time()/60) - list['start_point'] + 1
+        if(len(list['history']) == 0) or (list['history'][-1]['time'] != time_since_start):
+            list['history'].append({"time": time_since_start,
+                                    "balance": new_values['money']})
+        new_values['money_track'] = list
     collection.update_one(query_elements, {'$set': new_values})
 
 

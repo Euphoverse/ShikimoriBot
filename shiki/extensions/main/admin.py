@@ -96,7 +96,7 @@ async def add_money(ctx: lightbulb.SlashContext):
     'user',
     'Жертва',
     hikari.Member,
-    required=False
+    required=True
 )
 @lightbulb.command(
     'reset',

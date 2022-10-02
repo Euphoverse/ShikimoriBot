@@ -62,7 +62,7 @@ async def ready_listener(_):
                     _LOG.warning(
                         'missing key "%s" in document of user %s (%s)' % (key, str(member), str(member.id)))
                     db.update_document(users, {'_id': member.id}, {
-                                       key: cfg['db_defaults']['users'][key]})
+                                       key: cfg['db_defaults']['users'][key]}, reset=True)
 
 
 @plugin.listener(hikari.MemberCreateEvent)

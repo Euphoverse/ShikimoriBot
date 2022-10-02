@@ -18,7 +18,11 @@
             "donated": 0,
             "invites": 0,
             "lobbies": [],
-            "last_daily": 0
+            "last_daily": 0,
+            "money_track": {
+                "start_point": 0,
+                "history": []
+            }
         }
     },
     "mod_roles": [
