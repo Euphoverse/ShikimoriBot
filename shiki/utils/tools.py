@@ -163,7 +163,7 @@ async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
     while xp >= needed_xp:
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
-        reward = calc_coins(data['level'])
+        reward += calc_coins(data['level'])
         await ctx.bot.rest.create_message(
             channel=cfg[cfg['mode']]['channels']['actions'],
             embed=Embed(
