@@ -5,4 +5,5 @@ asyncio
 pymongo
 lightbulb-ext-tungsten
 matplotlib
+mplcyberpunk
 git+https://github.com/HyperGH/hikari-miru@feature/modals

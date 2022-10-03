@@ -75,8 +75,8 @@ def track(collection, query_elements, new_values, reset=False):
       (new_values['money']):
         list = find_document(collection, query_elements)['money_track']
         if(list['start_point'] == 0):
-            list['start_point'] = round(time.time()/60)
-        time_since_start = round(time.time()/60) - list['start_point'] + 1
+            list['start_point'] = round(time.time()/1)
+        time_since_start = round(time.time()/1) - list['start_point'] + 1
         if(len(list['history']) == 0) or (list['history'][-1]['time'] != time_since_start):
             list['history'].append({"time": time_since_start,
                                     "balance": new_values['money']})

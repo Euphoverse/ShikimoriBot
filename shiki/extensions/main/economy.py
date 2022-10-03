@@ -33,6 +33,7 @@ import hikari
 from shiki.utils import db, tools
 import shiki
 import matplotlib.pyplot as plt
+import mplcyberpunk
 
 
 cfg = tools.load_data('./settings/config')
@@ -255,13 +256,25 @@ async def statistic(ctx: lightbulb.SlashContext):
     for sdata in data['money_track']['history']:
         x.append(sdata['time'])
         y.append(sdata['balance'])
-    y[-1] = data['money']
-    graph, plot2 = plt.subplots(1)
-    plot2.plot(x, y)
-    plot2.set_title("История баланса")
-    plot2.set_xlabel('Дней с начала отсчёта')
-    plot2.set_ylabel('Баланс')
-    graph.tight_layout()
+    result = []
+    last = 0
+    for period in range(x[-1]):
+        for key in x:
+            if key == period:
+                last = key
+        for index in range(len(x)):
+            if(x[index] == last):
+                result.append(y[index])
+    result[-1] = data['money']
+    result.reverse()
+    plt.clf()
+    plt.style.use("cyberpunk")
+    plt.title(f'История баланса {ctx.author.username}')
+    plt.xlabel('Дней после присоединения')
+    plt.ylabel('Баланс')
+    plt.plot(result)
+    plt.gca().invert_xaxis()
+    mplcyberpunk.add_glow_effects()
     plt.savefig('graphs/graph.png')
     f = hikari.File('./graphs/graph.png')
     await ctx.respond(f)
