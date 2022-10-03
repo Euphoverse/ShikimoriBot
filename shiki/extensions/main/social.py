@@ -122,13 +122,14 @@ async def leaderboard(ctx: lightbulb.SlashContext):
     guild = ctx.get_guild()
     suff = ''
     if type == 'money': suff = currency_emoji
-    for sdata in data:
+    for user_id in list(data)[:10]:
         pref = ''
-        if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[sdata])}'
-        if index == 3: pref = "🥉 "
-        if index == 2: pref = "🥈 "
+        if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[user_id])}'
         if index == 1: pref = "🥇 "
-        em.add_field(f'**{pref}#{index}. {guild.get_member(sdata).username}**', f'**{type.capitalize()}**: {data[sdata]}{suff}')
+        if index == 2: pref = "🥈 "
+        if index == 3: pref = "🥉 "
+        em.add_field(f'**{pref}#{index}. {guild.get_member(user_id).username}**',
+                     f'**{type.capitalize()}**: {data[user_id]}{suff}')
         index += 1
     await ctx.respond(em)
 
