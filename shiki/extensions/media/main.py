@@ -32,7 +32,7 @@ from shiki.utils import db, tools
 from .ui import embed
 
 
-cfg = tools.load_data('./settings/config.json')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("MediaBroadcasts")
 
