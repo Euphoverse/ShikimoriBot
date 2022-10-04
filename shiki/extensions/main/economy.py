@@ -26,7 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 from datetime import datetime, timedelta
+from email.mime import multipart
 import random
 import lightbulb
 import hikari
@@ -204,6 +206,23 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Ежедневный бонус будет доступен через: {str(time_left).split(".")[0]}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
+
+
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    user = ctx.author
+    if user.is_bot: return
+    global message_cooldown
+    if 'message_cooldown' not in globals(): message_cooldown = []
+    if user.id in message_cooldown: return
+    message_cooldown.append(user.id)
+    multiplier = 1
+    if len(ctx.content) > 15: multiplier += 1
+    if len(ctx.content) > 50: multiplier += 1
+    if db.find_document(users, {'_id': user.id})['sponsor'] != None: multiplier *= 2
+    await tools.add_xp(user, random.randint(1, 3) * multiplier, plugin)
+    await asyncio.sleep(30)
+    message_cooldown.remove(user.id)
 
 
 def load(bot):
