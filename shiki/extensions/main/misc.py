@@ -77,10 +77,9 @@ async def misc(ctx: lightbulb.SlashContext) -> None:
 async def dice(ctx: lightbulb.SlashContext) -> None:
     await ctx.respond(embed=hikari.Embed(
         title='Кубики',
-        description=', '.join([str(random.randint(1, ctx.options.sides))
+        description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))
                               for _ in range(ctx.options.cubes)]),
         color=shiki.Colors.SUCCESS
-        # TODO: Add emotion to embed
     ))
 
 
