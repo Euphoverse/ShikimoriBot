@@ -68,35 +68,13 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
     for invite in await plugin.bot.rest.fetch_guild_invites(guild=cfg[cfg['mode']]['guild']):
         if invite.uses != invites[invite.code]['uses']:
             inviter = invite.inviter
-            data = db.find_document(users, {'_id': inviter.id})['invites']
-            db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
-            db.update_document(users, {'_id': inviter.id}, {'invites': data + 1})
-            fetching_invites = False
-            await plugin.bot.rest.create_message(
-                channel=cfg[cfg['mode']]['channels']['actions'],
-                embed=hikari.Embed(
-                    title=f'Новый участник',
-                    color=shiki.Colors.SUCCESS
-                ).set_footer(text=f'Пользователь присоединился', icon=inviter.display_avatar_url.url)
-                 .add_field(f'{inviter.username} пригласил пользователя {ctx.user}', f'Приглашений от {inviter.username}: **{data + 1}**')
-                )
+            await update_invites(inviter, ctx)
             return
     for key in invites:
         invite = invites[key]
         if(invite['uses'] < 0):
             inviter = ctx.get_guild().get_member(invite['code_creator'])
-            data = db.find_document(users, {'_id': inviter.id})['invites']
-            db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
-            db.update_document(users, {'_id': inviter.id}, {'invites': data + 1})
-            fetching_invites = False
-            await plugin.bot.rest.create_message(
-                channel=cfg[cfg['mode']]['channels']['actions'],
-                embed=hikari.Embed(
-                    title=f'Новый участник',
-                    color=shiki.Colors.SUCCESS
-                ).set_footer(text=f'Пользователь присоединился', icon=inviter.display_avatar_url.url)
-                 .add_field(f'{inviter.username} пригласил пользователя {ctx.user}', f'Приглашений от {inviter.username}: **{data + 1}**')
-                )
+            await update_invites(inviter, ctx)
             return
     fetching_invites = False
 
@@ -124,6 +102,26 @@ async def member_left(ctx: hikari.MemberDeleteEvent):
     await plugin.bot.rest.create_message(
                 channel=cfg[cfg['mode']]['channels']['actions'],
                 embed=em)
+
+
+async def update_invites(inviter, ctx):
+    global fetching_invites
+    data = db.find_document(users, {'_id': inviter.id})
+    data['invites'] += 1
+    if data['invites'] % 5 == 0 and data['invites'] > data['stats']['invites_claimed']:
+       data['stats']['invites_claimed'] = data['invites']
+       data['money'] += 50 * data['invites']
+    db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
+    db.update_document(users, {'_id': inviter.id}, data)
+    fetching_invites = False
+    await plugin.bot.rest.create_message(
+        channel=cfg[cfg['mode']]['channels']['actions'],
+        embed=hikari.Embed(
+            title=f'Новый участник',
+            color=shiki.Colors.SUCCESS
+        ).set_footer(text=f'Пользователь присоединился', icon=inviter.display_avatar_url.url)
+         .add_field(f'{inviter.username} пригласил пользователя {ctx.user}', f'Приглашений от {inviter.username}: **{data["invites"]}**')
+    )
 
 
 def load(bot):
