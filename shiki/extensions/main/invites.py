@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 import lightbulb
 import hikari
 import shiki
@@ -39,30 +40,38 @@ plugin = lightbulb.Plugin("MediaBroadcasts")
 
 @plugin.listener(hikari.StartedEvent)
 async def get_invites(_):
+    global fetching_invites
+    fetching_invites = False
     global invites
     invites = {}
     for invite in await plugin.bot.rest.fetch_guild_invites(guild=cfg[cfg['mode']]['guild']):
-        invites.update({invite.code: invite.uses})
+        invites.update({invite.code: {"uses": invite.uses, "code_creator": invite.inviter.id}})
 
 
 @plugin.listener(hikari.InviteCreateEvent)
 async def invite_created(ctx: hikari.InviteCreateEvent):
-    invites.update({ctx.invite.code: 0})
+    invites.update({ctx.invite.code: {"uses": ctx.invite.uses, "code_creator": ctx.invite.inviter.id}})
 
 
 @plugin.listener(hikari.InviteDeleteEvent)
 async def invite_deleted(ctx: hikari.InviteDeleteEvent):
+    invites[ctx.code]['uses'] = -10
+    while fetching_invites:
+        await asyncio.sleep(1)
     del invites[ctx.code]
 
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def member_joined(ctx: hikari.MemberCreateEvent):
+    global fetching_invites, invites
+    fetching_invites = True
     for invite in await plugin.bot.rest.fetch_guild_invites(guild=cfg[cfg['mode']]['guild']):
-        if invite.uses != invites[invite.code]:
+        if invite.uses != invites[invite.code]['uses']:
             inviter = invite.inviter
             data = db.find_document(users, {'_id': inviter.id})['invites']
             db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
             db.update_document(users, {'_id': inviter.id}, {'invites': data + 1})
+            fetching_invites = False
             await plugin.bot.rest.create_message(
                 channel=cfg[cfg['mode']]['channels']['actions'],
                 embed=hikari.Embed(
@@ -71,6 +80,26 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
                 ).set_footer(text=f'Пользователь присоединился', icon=inviter.display_avatar_url.url)
                  .add_field(f'{inviter.username} пригласил пользователя {ctx.user}', f'Приглашений от {inviter.username}: **{data + 1}**')
                 )
+            return
+    for key in invites:
+        invite = invites[key]
+        if(invite['uses'] < 0):
+            inviter = ctx.get_guild().get_member(invite['code_creator'])
+            data = db.find_document(users, {'_id': inviter.id})['invites']
+            db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
+            db.update_document(users, {'_id': inviter.id}, {'invites': data + 1})
+            fetching_invites = False
+            await plugin.bot.rest.create_message(
+                channel=cfg[cfg['mode']]['channels']['actions'],
+                embed=hikari.Embed(
+                    title=f'Новый участник',
+                    color=shiki.Colors.SUCCESS
+                ).set_footer(text=f'Пользователь присоединился', icon=inviter.display_avatar_url.url)
+                 .add_field(f'{inviter.username} пригласил пользователя {ctx.user}', f'Приглашений от {inviter.username}: **{data + 1}**')
+                )
+            return
+    fetching_invites = False
+
 
 
 @plugin.listener(hikari.MemberDeleteEvent)
