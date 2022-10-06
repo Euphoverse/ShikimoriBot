@@ -44,13 +44,14 @@ def fetch_content(content):
     if re.search('закреп', content): output = 'pin'
     if re.search(' ава', content): output = 'avatar'
     if re.search(' аву', content): output = 'avatar'
+    if re.search('фотокарточк', content): output = 'avatar'
     if re.search(' заш', content): output = 'join'
     if re.search('присоединил', content): output = 'join'
-    if re.search('фотокарточк', content): output = 'avatar'
     if re.search('прошло', content): output = 'time since'
     if re.search(' мод', content): output = 'mod'
     if re.search('слоумод', content): output = 'slowmode'
     if re.search('медленный', content): output = 'slowmode'
+    if re.search(' онлайн', content): output = 'online'
     return output
 
 
@@ -128,6 +129,16 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
             reference = await ctx.get_channel().fetch_message(reference)
             reference = ctx.get_guild().get_member(reference.author.id)
         return await ctx.message.respond(f'<t:{round(time.mktime(reference.joined_at.timetuple()))}>')
+
+
+    if content == 'online':
+        online = 0
+        offline = 0
+        for user in await plugin.bot.rest.fetch_members(ctx.get_guild().id):
+            if not user.is_bot:
+                if user.get_presence() != None: online += 1
+                else: offline += 1
+        return await ctx.message.respond(f'Онлайн: ``{online} / {offline + online}``')
 
 
 def suff(int, hours=False):
