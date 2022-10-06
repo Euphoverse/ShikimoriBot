@@ -36,23 +36,7 @@ from shiki.utils import db, tools
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("Quick")
-
-
-def fetch_content(content):
-    output = None
-    if re.search('закреп', content): output = 'pin'
-    if re.search(' ава', content): output = 'avatar'
-    if re.search(' аву', content): output = 'avatar'
-    if re.search('фотокарточк', content): output = 'avatar'
-    if re.search(' заш', content): output = 'join'
-    if re.search('присоединил', content): output = 'join'
-    if re.search('прошло', content): output = 'time since'
-    if re.search(' мод', content): output = 'mod'
-    if re.search('слоумод', content): output = 'slowmode'
-    if re.search('медленный', content): output = 'slowmode'
-    if re.search(' онлайн', content): output = 'online'
-    return output
+plugin = lightbulb.Plugin("QuickChat")
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
@@ -60,7 +44,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if ctx.author.is_bot: return
     raw_content = ctx.content.lower()
     if not raw_content.startswith('шики'): return
-    content = fetch_content(raw_content)
+    content = tools.fetch_content(raw_content)
 
     if content == 'pin': 
         roles = [k.id for k in ctx.member.get_roles()]
