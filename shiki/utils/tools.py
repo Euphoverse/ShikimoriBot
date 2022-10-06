@@ -210,23 +210,29 @@ def fetch_content(content):
     return output
 
 
-def grant_achievement(user_id, achievement):
-    data = db.find_document(users, {'_id': user_id})
+achievements = load_data('./settings/achievements')
+
+
+async def grant_achievement(user: hikari.User, achievement):
+    data = db.find_document(users, {'_id': user.id})
     if data['achievements'] == None: return False
     if achievement in data['achievements']: return False
     else: 
-        achievements = data['achievements']
-        achievements.append(achievement)
-        db.update_document(users, {'_id': user_id}, {'achievements': achievements})
+        achs = data['achievements']
+        achs.append(achievement)
+        db.update_document(users, {'_id': user.id}, {'achievements': achs})
+        achievement_title = achievements[achievement]['title']
+        achievement_desc = achievements[achievement]['description']
+        await user.send(f'Вы получили достижение:\n``{achievement_title} - {achievement_desc}``')
         return True
 
 
-def revoke_achievement(user_id, achievement):
-    data = db.find_document(users, {'_id': user_id})
+async def revoke_achievement(user: hikari.User, achievement):
+    data = db.find_document(users, {'_id': user.id})
     if data['achievements'] == None: return False
     if achievement not in data['achievements']: return False
     else: 
         achievements = data['achievements']
         achievements.remove(achievement)
-        db.update_document(users, {'_id': user_id}, {'achievements': achievements})
+        db.update_document(users, {'_id': user.id}, {'achievements': achievements})
         return True

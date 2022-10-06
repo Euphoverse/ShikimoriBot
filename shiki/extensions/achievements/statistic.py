@@ -45,22 +45,23 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
     if user.is_bot: return
     data = db.find_document(stats, {'_id': user.id})
     if data == None: return
+
+    # 0
     data['messages_total'] += 1
     if data['messages_total'] == 1:
-        tools.grant_achievement(user.id, 0)
-        achievement_title = achievements['0']['title']
-        achievement_desc = achievements['0']['description']
-        await ctx.message.respond(f'Вы получили достижение:\n``{achievement_title} - {achievement_desc}``')
+        await tools.grant_achievement(user, '0')
+    
+    # 1
     data['messages_today'] += 1
     if data['messages_date'] == None: data['messages_date'] = time.time() // 86400
     if time.time() // 86400 - data['messages_date'] >= 1: 
         data['messages_date'] = time.time() // 86400
         data['messages_today'] = 1
-    if data['messages_today'] == 100:
-        if tools.grant_achievement(user.id, 1):
-            achievement_title = achievements['1']['title']
-            achievement_desc = achievements['1']['description']
-            await ctx.message.respond(f'Вы получили достижение:\n``{achievement_title} - {achievement_desc}``')
+    if data['messages_today'] == 100: await tools.grant_achievement(user, '1')
+    
+    # 2
+    if ctx.content.isalpha(): await tools.grant_achievement(user, '2')
+
     db.update_document(stats, {'_id': user.id}, data)
 
 
