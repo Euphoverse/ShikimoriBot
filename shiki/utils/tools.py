@@ -208,3 +208,25 @@ def fetch_content(content):
     if re.search('замуть гк', content): output = 'mute all'
     if re.search('размуть гк', content): output = 'mute all'
     return output
+
+
+def grant_achievement(user_id, achievement):
+    data = db.find_document(users, {'_id': user_id})
+    if data['achievements'] == None: return False
+    if achievement in data['achievements']: return False
+    else: 
+        achievements = data['achievements']
+        achievements.append(achievement)
+        db.update_document(users, {'_id': user_id}, {'achievements': achievements})
+        return True
+
+
+def revoke_achievement(user_id, achievement):
+    data = db.find_document(users, {'_id': user_id})
+    if data['achievements'] == None: return False
+    if achievement not in data['achievements']: return False
+    else: 
+        achievements = data['achievements']
+        achievements.remove(achievement)
+        db.update_document(users, {'_id': user_id}, {'achievements': achievements})
+        return True

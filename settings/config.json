@@ -19,9 +19,13 @@
             "invites": 0,
             "lobbies": [],
             "last_daily": 0,
-            "stats": {
-                "invites_claimed": 0
-            }
+            "achievements": []
+        },
+        "stats": {
+            "invites_claimed": 0,
+            "messages_total": 0,
+            "messages_today": 0,
+            "messages_date": null
         }
     },
     "mod_roles": [
