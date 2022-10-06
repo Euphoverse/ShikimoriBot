@@ -26,14 +26,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
 import lightbulb
 import hikari
 import logging
 from shiki.utils import db, tools
 import shiki
 from .ui import guides as guides_ui
-import typing as t
 
 
 cfg = tools.load_data('./settings/config')

@@ -29,7 +29,6 @@
 import random
 import lightbulb
 import hikari
-import logging
 from shiki.utils import db, tools
 import shiki
 

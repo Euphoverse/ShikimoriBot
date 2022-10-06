@@ -28,7 +28,6 @@
 
 import asyncio
 from datetime import datetime, timedelta
-from email.mime import multipart
 import random
 import lightbulb
 import hikari
