@@ -114,7 +114,6 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
             reference = ctx.get_guild().get_member(reference.author.id)
         return await ctx.message.respond(f'<t:{round(time.mktime(reference.joined_at.timetuple()))}>')
 
-
     if content == 'online':
         online = 0
         offline = 0
