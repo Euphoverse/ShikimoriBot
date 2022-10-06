@@ -26,8 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from datetime import datetime, timedelta, timezone
-import re
 import lightbulb
 import hikari
 from shiki.utils import db, tools
@@ -35,7 +33,7 @@ from shiki.utils import db, tools
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("QuickMisc")
+plugin = lightbulb.Plugin("QuickVoice")
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
@@ -45,14 +43,24 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if not raw_content.startswith('шики'): return
     content = tools.fetch_content(raw_content)
 
-    if content == 'msk':
-        msk = datetime.now(tz=timezone.utc) + timedelta(hours=3)
-        return await ctx.message.respond(msk.strftime('%H:%M:%S'))
-    
-    if content == 'snowflake':
-        snowflake_id = int(re.search(r'\d+', ctx.content).group(0))
-        snowflake_date = hikari.Snowflake(snowflake_id).created_at
-        return await ctx.message.respond(f'Дата создания: {snowflake_date.strftime("%Y-%m-%d %H:%M:%S")}')
+    if content == 'move':
+        roles = [k.id for k in ctx.member.get_roles()]
+        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+           cfg[cfg['mode']]['roles']['mod'] not in roles:
+           return
+        reference = ctx.message.message_reference
+        if reference == None: return
+        else:
+            reference = ctx.message.message_reference.id
+            reference = await ctx.get_channel().fetch_message(reference)
+            reference = ctx.get_guild().get_member(reference.author)
+        reference_state = ctx.get_guild().get_voice_state(reference.id)
+        user_state = ctx.get_guild().get_voice_state(ctx.author_id)
+        if reference_state == None:
+            return await ctx.message.respond('Этого пользователя нет в голосовых каналах')
+        if user_state == None:
+            return await ctx.message.respond('Вы должны быть в голосовом канале для этого действия')
+        await reference.edit(voice_channel=user_state.channel_id)
 
 
 def load(bot):

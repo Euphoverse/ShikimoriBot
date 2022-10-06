@@ -89,9 +89,9 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
             reference = ctx.message.message_reference.id
             reference = await ctx.get_channel().fetch_message(reference)
             reference = reference.author
-        data = db.find_document(users, {'_id': reference.id})['mod']
-        if data == None: moderator = 'никто'
-        else: moderator = ctx.get_guild().get_member(data)
+        data = db.find_document(users, {'_id': reference.id})
+        if data == None or data['mod'] == None: moderator = 'никто'
+        else: moderator = ctx.get_guild().get_member(data['mod'])
         return await ctx.message.respond(f'Модератором {reference.username} является {moderator}')
 
     if content == 'slowmode':
