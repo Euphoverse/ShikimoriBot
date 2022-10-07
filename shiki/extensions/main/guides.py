@@ -47,19 +47,20 @@ async def update_guides():
     me = plugin.bot.get_me()
 
     for g in guides:
-        comp = guides_ui.RootPage(g)
+        if 'children' in guides[g]:
+            comp = guides_ui.RootPage(g)
 
         history = await plugin.bot.rest.fetch_messages(guides[g]['channel'][cfg['mode']])
         if (history[0].author.id != me.id if len(history) != 0 else True):
             m = await plugin.bot.rest.create_message(
                 channel=guides[g]['channel'][cfg['mode']],
                 embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp
+                components=comp if 'children' in guides[g] else None
             )
         else:
             m = await history[0].edit(
                 embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp
+                components=comp if 'children' in guides[g] else None
             )
 
         await comp.start(m)
