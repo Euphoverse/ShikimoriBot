@@ -45,18 +45,33 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     raw_content = ctx.content.lower()
     if not raw_content.startswith('шики'): return
     content = tools.fetch_content(raw_content)
+    print(ctx.author, content)
 
     if content == 'pin': 
         roles = [k.id for k in ctx.member.get_roles()]
         if cfg[cfg['mode']]['roles']['admin'] not in roles or\
            cfg[cfg['mode']]['roles']['mod'] not in roles:
            return
+
         reference = ctx.message.message_reference
-        if reference == None: return
-        return await ctx.get_channel().pin_message(reference.id)
+        if reference == None:
+            return await plugin.app.rest.create_message(
+                ctx.channel_id,
+                'Ты не указал какое сообщение закрепить <:2987zerotwo:1027903070572662834>'
+            )
+
+        await plugin.app.rest.pin_message(
+            ctx.channel_id,
+            reference.id
+        )
+        return await plugin.app.rest.create_message(
+            ctx.channel_id,
+            'Закрепила <:2530cirowo:1027509894284329032>'
+        )
 
     if content == 'avatar':
-        if ctx.message.message_reference == None: reference = ctx.author.display_avatar_url
+        if ctx.message.message_reference == None: 
+            reference = ctx.author.display_avatar_url
         else: 
             reference_id = ctx.message.message_reference.id
             reference = await ctx.get_channel().fetch_message(reference_id)
@@ -70,17 +85,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
             reference = ctx.message.message_reference.id
             reference = await ctx.get_channel().fetch_message(reference)
         time_since = datetime.now(tz=timezone.utc) - reference.timestamp
-        total_seconds = round(time_since.total_seconds())
-        seconds = total_seconds % 60
-        minutes = total_seconds // 60 % 60
-        hours = total_seconds // 3600
-        if seconds == 0: seconds = ''
-        else: seconds = f' ``{seconds} секунд{suff(seconds)}``'
-        if minutes == 0: minutes = ''
-        else: minutes = f' ``{minutes} минут{suff(minutes)}``'
-        if hours == 0: hours = ''
-        else: hours = f' ``{hours} час{suff(hours, hours=True)}``'
-        return await ctx.message.respond(f'Прошло{hours}{minutes}{seconds}')
+        return await ctx.message.respond('Прошло `%s`' % str(time_since).split('.')[0])
 
     if content == 'mod':
         reference = ctx.message.message_reference

@@ -42,25 +42,31 @@ plugin = lightbulb.Plugin("Statistic")
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_created(ctx: hikari.GuildMessageCreateEvent):
     user = ctx.author
-    if user.is_bot: return
+    if user.is_bot:
+        return
+
     data = db.find_document(stats, {'_id': user.id})
-    if data == None: return
+    if data == None:
+        return
 
     # 0
     data['messages_total'] += 1
     if data['messages_total'] == 1:
         await tools.grant_achievement(user, '0')
-    
+
     # 1
     data['messages_today'] += 1
-    if data['messages_date'] == None: data['messages_date'] = time.time() // 86400
-    if time.time() // 86400 - data['messages_date'] >= 1: 
+    if data['messages_date'] == None:
+        data['messages_date'] = time.time() // 86400
+    if time.time() // 86400 - data['messages_date'] >= 1:
         data['messages_date'] = time.time() // 86400
         data['messages_today'] = 1
-    if data['messages_today'] == 100: await tools.grant_achievement(user, '1')
-    
+    if data['messages_today'] == 100:
+        await tools.grant_achievement(user, '1')
+
     # 2
-    if ctx.content.isalpha(): await tools.grant_achievement(user, '2')
+    if ctx.content.isalpha():
+        await tools.grant_achievement(user, '2')
 
     db.update_document(stats, {'_id': user.id}, data)
 

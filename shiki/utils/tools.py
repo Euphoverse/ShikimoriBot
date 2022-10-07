@@ -121,14 +121,14 @@ def get_mod_users(mod_id: int) -> List[int]:
     return [doc['_id'] for doc in db.find_document(users, {}, True) if doc['mod'] == mod_id]
 
 
-def load_data(name: str, encoding=None) -> dict | list | None:
+def load_data(name: str, encoding='utf8') -> dict | list | None:
     '''Loads json file'''
     if os.path.isfile(name + '.json'):
         with open(name + '.json', 'r', encoding=encoding) as f:
             return json.load(f)
 
 
-def update_data(name: str, data: dict | list, encoding=None) -> None:
+def update_data(name: str, data: dict | list, encoding='utf8') -> None:
     '''Updates json file'''
     if os.path.isfile(name + '.json'):
         with open(name + '.json', 'w', encoding=encoding) as f:
@@ -223,7 +223,10 @@ async def grant_achievement(user: hikari.User, achievement):
         db.update_document(users, {'_id': user.id}, {'achievements': achs})
         achievement_title = achievements[achievement]['title']
         achievement_desc = achievements[achievement]['description']
-        await user.send(f'Вы получили достижение:\n``{achievement_title} - {achievement_desc}``')
+        await user.app.rest.create_message(
+            cfg[cfg['mode']]['channels']['actions'],
+            f'{user.mention}, вы получили достижение:\n``{achievement_title} - {achievement_desc}``',
+            user_mentions=True)
         return True
 
 
