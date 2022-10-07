@@ -26,16 +26,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
 import lightbulb
 import hikari
-import logging
 from shiki.utils import db, tools
 import shiki
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
+stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("Admin")
 currency_emoji = cfg['emojis']['currency']
 
@@ -134,6 +133,7 @@ async def resetUser(ctx: lightbulb.SlashContext):
 
         # Обнуление
         db.update_document(users, {'_id': user.id}, cfg['db_defaults']['users'])
+        db.update_document(stats, {'_id': user.id}, cfg['db_defaults']['stats'])
         await ctx.edit_last_response(embed=hikari.Embed(
             title='Выполнено',
             description=f'Статистика **{user}** была полностью обнулена.',

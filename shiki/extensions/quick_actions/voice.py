@@ -26,60 +26,41 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("Misc")
+plugin = lightbulb.Plugin("QuickVoice")
 
 
-@plugin.command
-@lightbulb.command(
-    'misc',
-    'Разные вспомогательные команды',
-    auto_defer=True
-)
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def misc(ctx: lightbulb.SlashContext) -> None:
-    # Command group /misc
-    pass
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    if ctx.author.is_bot: return
+    raw_content = ctx.content.lower()
+    if not raw_content.startswith('шики'): return
+    content = tools.fetch_content(raw_content)
 
-
-@misc.child
-@lightbulb.option(
-    'sides',
-    'Количество граней',
-    type=int,
-    required=True,
-    min_value=2,
-    max_value=101
-)
-@lightbulb.option(
-    'cubes',
-    'Количество кубиков',
-    type=int,
-    required=False,
-    min_value=1,
-    max_value=15,
-    default=1
-)
-@lightbulb.command(
-    'dice',
-    'Кинуть кубики'
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def dice(ctx: lightbulb.SlashContext) -> None:
-    await ctx.respond(embed=hikari.Embed(
-        title='Кубики',
-        description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))
-                              for _ in range(ctx.options.cubes)]),
-        color=shiki.Colors.SUCCESS
-    ))
+    if content == 'move':
+        roles = [k.id for k in ctx.member.get_roles()]
+        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+           cfg[cfg['mode']]['roles']['mod'] not in roles:
+           return
+        reference = ctx.message.message_reference
+        if reference == None: return
+        else:
+            reference = ctx.message.message_reference.id
+            reference = await ctx.get_channel().fetch_message(reference)
+            reference = ctx.get_guild().get_member(reference.author)
+        reference_state = ctx.get_guild().get_voice_state(reference.id)
+        user_state = ctx.get_guild().get_voice_state(ctx.author_id)
+        if reference_state == None:
+            return await ctx.message.respond('Этого пользователя нет в голосовых каналах')
+        if user_state == None:
+            return await ctx.message.respond('Вы должны быть в голосовом канале для этого действия')
+        await reference.edit(voice_channel=user_state.channel_id)
 
 
 def load(bot):

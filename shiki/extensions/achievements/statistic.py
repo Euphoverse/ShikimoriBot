@@ -26,60 +26,43 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
+import time
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
+achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("Misc")
+stats = db.connect().get_database('shiki').get_collection('stats')
+plugin = lightbulb.Plugin("Statistic")
 
 
-@plugin.command
-@lightbulb.command(
-    'misc',
-    'Разные вспомогательные команды',
-    auto_defer=True
-)
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def misc(ctx: lightbulb.SlashContext) -> None:
-    # Command group /misc
-    pass
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_created(ctx: hikari.GuildMessageCreateEvent):
+    user = ctx.author
+    if user.is_bot: return
+    data = db.find_document(stats, {'_id': user.id})
+    if data == None: return
 
+    # 0
+    data['messages_total'] += 1
+    if data['messages_total'] == 1:
+        await tools.grant_achievement(user, '0')
+    
+    # 1
+    data['messages_today'] += 1
+    if data['messages_date'] == None: data['messages_date'] = time.time() // 86400
+    if time.time() // 86400 - data['messages_date'] >= 1: 
+        data['messages_date'] = time.time() // 86400
+        data['messages_today'] = 1
+    if data['messages_today'] == 100: await tools.grant_achievement(user, '1')
+    
+    # 2
+    if ctx.content.isalpha(): await tools.grant_achievement(user, '2')
 
-@misc.child
-@lightbulb.option(
-    'sides',
-    'Количество граней',
-    type=int,
-    required=True,
-    min_value=2,
-    max_value=101
-)
-@lightbulb.option(
-    'cubes',
-    'Количество кубиков',
-    type=int,
-    required=False,
-    min_value=1,
-    max_value=15,
-    default=1
-)
-@lightbulb.command(
-    'dice',
-    'Кинуть кубики'
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def dice(ctx: lightbulb.SlashContext) -> None:
-    await ctx.respond(embed=hikari.Embed(
-        title='Кубики',
-        description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))
-                              for _ in range(ctx.options.cubes)]),
-        color=shiki.Colors.SUCCESS
-    ))
+    db.update_document(stats, {'_id': user.id}, data)
 
 
 def load(bot):

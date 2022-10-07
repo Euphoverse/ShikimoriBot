@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import re
 from typing import Any, List
 from hikari import Embed, File, Guild, Member, Color
 import os
@@ -178,3 +179,60 @@ async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
                        {'level': data['level'], 'xp': xp,
                         'money': data['money'] + reward}
                        )
+
+def fetch_content(content):
+    output = None
+    if re.search('закреп', content): output = 'pin'
+    if re.search(' ава', content): output = 'avatar'
+    if re.search(' аву', content): output = 'avatar'
+    if re.search('фотокарточк', content): output = 'avatar'
+    if re.search(' заш', content): output = 'join'
+    if re.search('присоединил', content): output = 'join'
+    if re.search(' мск', content): output = 'msk'
+    if re.search(' врем', content): output = 'msk'
+    if re.search('прошло', content): output = 'time since'
+    if re.search(' мод', content): output = 'mod'
+    if re.search('слоумод', content): output = 'slowmode'
+    if re.search('медленный', content): output = 'slowmode'
+    if re.search(' онлайн', content): output = 'online'
+    if re.search('сноуфлейк', content): output = 'snowflake'
+    if re.search('перемести', content): output = 'move'
+    if re.search('перетащи', content): output = 'move'
+    if re.search('перекинь', content): output = 'move'
+    if re.search('мут всем', content): output = 'mute all'
+    if re.search('анмут всем', content): output = 'mute all'
+    if re.search('гк мут', content): output = 'mute all'
+    if re.search('гк анмут', content): output = 'mute all'
+    if re.search('замуть всех', content): output = 'mute all'
+    if re.search('размуть всех', content): output = 'mute all'
+    if re.search('замуть гк', content): output = 'mute all'
+    if re.search('размуть гк', content): output = 'mute all'
+    return output
+
+
+achievements = load_data('./settings/achievements')
+
+
+async def grant_achievement(user: hikari.User, achievement):
+    data = db.find_document(users, {'_id': user.id})
+    if data['achievements'] == None: return False
+    if achievement in data['achievements']: return False
+    else: 
+        achs = data['achievements']
+        achs.append(achievement)
+        db.update_document(users, {'_id': user.id}, {'achievements': achs})
+        achievement_title = achievements[achievement]['title']
+        achievement_desc = achievements[achievement]['description']
+        await user.send(f'Вы получили достижение:\n``{achievement_title} - {achievement_desc}``')
+        return True
+
+
+async def revoke_achievement(user: hikari.User, achievement):
+    data = db.find_document(users, {'_id': user.id})
+    if data['achievements'] == None: return False
+    if achievement not in data['achievements']: return False
+    else: 
+        achievements = data['achievements']
+        achievements.remove(achievement)
+        db.update_document(users, {'_id': user.id}, {'achievements': achievements})
+        return True

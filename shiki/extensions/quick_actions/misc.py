@@ -26,60 +26,33 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import random
+from datetime import datetime, timedelta, timezone
+import re
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("Misc")
+plugin = lightbulb.Plugin("QuickMisc")
 
 
-@plugin.command
-@lightbulb.command(
-    'misc',
-    'Разные вспомогательные команды',
-    auto_defer=True
-)
-@lightbulb.implements(lightbulb.SlashCommandGroup)
-async def misc(ctx: lightbulb.SlashContext) -> None:
-    # Command group /misc
-    pass
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    if ctx.author.is_bot: return
+    raw_content = ctx.content.lower()
+    if not raw_content.startswith('шики'): return
+    content = tools.fetch_content(raw_content)
 
-
-@misc.child
-@lightbulb.option(
-    'sides',
-    'Количество граней',
-    type=int,
-    required=True,
-    min_value=2,
-    max_value=101
-)
-@lightbulb.option(
-    'cubes',
-    'Количество кубиков',
-    type=int,
-    required=False,
-    min_value=1,
-    max_value=15,
-    default=1
-)
-@lightbulb.command(
-    'dice',
-    'Кинуть кубики'
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def dice(ctx: lightbulb.SlashContext) -> None:
-    await ctx.respond(embed=hikari.Embed(
-        title='Кубики',
-        description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))
-                              for _ in range(ctx.options.cubes)]),
-        color=shiki.Colors.SUCCESS
-    ))
+    if content == 'msk':
+        msk = datetime.now(tz=timezone.utc) + timedelta(hours=3)
+        return await ctx.message.respond(msk.strftime('%H:%M:%S'))
+    
+    if content == 'snowflake':
+        snowflake_id = int(re.search(r'\d+', ctx.content).group(0))
+        snowflake_date = hikari.Snowflake(snowflake_id).created_at
+        return await ctx.message.respond(f'Дата создания: {snowflake_date.strftime("%Y-%m-%d %H:%M:%S")}')
 
 
 def load(bot):

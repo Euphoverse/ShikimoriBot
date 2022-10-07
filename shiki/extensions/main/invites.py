@@ -35,6 +35,7 @@ from shiki.utils import db, tools
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
+stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("MediaBroadcasts")
 
 
@@ -107,10 +108,12 @@ async def member_left(ctx: hikari.MemberDeleteEvent):
 async def update_invites(inviter, ctx):
     global fetching_invites
     data = db.find_document(users, {'_id': inviter.id})
+    data2 = db.find_document(stats, {'_id': inviter.id})
     data['invites'] += 1
-    if data['invites'] % 5 == 0 and data['invites'] > data['stats']['invites_claimed']:
-       data['stats']['invites_claimed'] = data['invites']
-       data['money'] += 50 * data['invites']
+    if data['invites'] % 5 == 0 and data['invites'] > data2['invites_claimed']:
+        data2['invites_claimed'] = data['invites']
+        data['money'] += 50 * data['invites']
+        db.update_document(stats, {'_id': inviter.id}, data2)
     db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
     db.update_document(users, {'_id': inviter.id}, data)
     fetching_invites = False
