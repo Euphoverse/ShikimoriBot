@@ -57,10 +57,15 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         reference_state = ctx.get_guild().get_voice_state(reference.id)
         user_state = ctx.get_guild().get_voice_state(ctx.author_id)
         if reference_state == None:
-            return await ctx.message.respond('Этого пользователя нет в голосовых каналах')
+            return await ctx.message.respond('%s не в ГК <:1720kannauhh:1028186197287247874>' % reference.mention,
+                                             reply=True)
         if user_state == None:
-            return await ctx.message.respond('Вы должны быть в голосовом канале для этого действия')
+            return await ctx.message.respond('Ты не в ГК <:9380fuminodepression3:1027509992774975518>', reply=True)
         await reference.edit(voice_channel=user_state.channel_id)
+        return await ctx.message.respond(
+            'Переместила <:5514kannasleep:1028186236990537749>',
+            reply=True
+        )
 
 
 def load(bot):

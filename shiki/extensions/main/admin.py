@@ -103,7 +103,7 @@ async def add_money(ctx: lightbulb.SlashContext):
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def resetUser(ctx: lightbulb.SlashContext):
+async def reset_user(ctx: lightbulb.SlashContext):
     # Подтверждение
     user = ctx.options.user
     await ctx.respond(embed=hikari.Embed(

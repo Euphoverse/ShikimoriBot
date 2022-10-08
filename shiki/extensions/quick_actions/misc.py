@@ -30,7 +30,9 @@ from datetime import datetime, timedelta, timezone
 import re
 import lightbulb
 import hikari
+from numpy import True_
 from shiki.utils import db, tools
+import time
 
 
 cfg = tools.load_data('./settings/config')
@@ -47,12 +49,19 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
 
     if content == 'msk':
         msk = datetime.now(tz=timezone.utc) + timedelta(hours=3)
-        return await ctx.message.respond(msk.strftime('%H:%M:%S'))
+        return await ctx.message.respond(msk.strftime('%H:%M:%S'), reply=True_)
     
     if content == 'snowflake':
-        snowflake_id = int(re.search(r'\d+', ctx.content).group(0))
+        search = re.search(r'\d+', ctx.content)
+        if search is None:
+            return await ctx.message.respond(
+                'Ты не указал сноуфлек <:4408ganyuinsane:1027509912609239040>',
+                reply=True
+            )
+
+        snowflake_id = int(search.group(0))
         snowflake_date = hikari.Snowflake(snowflake_id).created_at
-        return await ctx.message.respond(f'Дата создания: {snowflake_date.strftime("%Y-%m-%d %H:%M:%S")}')
+        return await ctx.message.respond(f'<t:{round(time.mktime(snowflake_date.timetuple()))}>', reply=True)
 
 
 def load(bot):
