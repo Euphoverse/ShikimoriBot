@@ -121,15 +121,6 @@ async def ready(event: hikari.ShardReadyEvent):
         vc_tmp[u] = datetime.now()
 
 
-@plugin.command
-@lightbulb.command('test', 'A test command')
-@lightbulb.implements(lightbulb.SlashCommand)
-async def test_cmd(ctx: lightbulb.PrefixContext):
-    await ctx.respond(
-        str(db.find_document(stats, {'_id': ctx.user.id}))
-    )
-
-
 def load(bot):
     bot.add_plugin(plugin)
 
