@@ -32,6 +32,7 @@ import logging
 from shiki.utils import db, tools
 import shiki
 from .ui import guides as guides_ui
+from .ui import verification as verify
 
 
 cfg = tools.load_data('./settings/config')
@@ -45,20 +46,24 @@ async def update_guides():
     me = plugin.bot.get_me()
 
     for g in guides:
+        comp = None
         if 'children' in guides[g]:
             comp = guides_ui.RootPage(g)
+        
+        if guides[g]['special-attribute'] == 'verification':
+            comp = verify.Verification()
 
         history = await plugin.bot.rest.fetch_messages(guides[g]['channel'][cfg['mode']])
         if (history[0].author.id != me.id if len(history) != 0 else True):
             m = await plugin.bot.rest.create_message(
                 channel=guides[g]['channel'][cfg['mode']],
                 embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp if 'children' in guides[g] else None
+                components=comp
             )
         else:
             m = await history[0].edit(
                 embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp if 'children' in guides[g] else None
+                components=comp
             )
 
         await comp.start(m)

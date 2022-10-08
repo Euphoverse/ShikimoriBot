@@ -91,7 +91,7 @@ async def member_join(event: hikari.MemberCreateEvent):
         db.insert_document(
             stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
         await assign_mod(event.member)
-        await event.member.get_guild()\
+        return await event.member.get_guild()\
             .get_channel(cfg[cfg['mode']]['channels']['general'])\
             .send(f"Хей, %s! Добро пожаловать на наш сервер! Твоим модератором будет %s. Он(а) поможет тебе освоиться на сервере. Также по всем вопросам и за помощью обращайся только к этому модератору <3" % (
                 event.member.mention,
