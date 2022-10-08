@@ -100,6 +100,7 @@ async def member_join(event: hikari.MemberCreateEvent):
                 .mention
             ))
     # Re-assigning moderator
+    await tools.grant_achievement(event.user, '4')
     await assign_mod(event.member)
     await event.member.get_guild()\
         .get_channel(cfg[cfg['mode']]['channels']['general'])\

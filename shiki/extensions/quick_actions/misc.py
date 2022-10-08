@@ -49,7 +49,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
 
     if content == 'msk':
         msk = datetime.now(tz=timezone.utc) + timedelta(hours=3)
-        return await ctx.message.respond(msk.strftime('%H:%M:%S'), reply=True_)
+        return await ctx.message.respond(msk.strftime('%H:%M:%S'), reply=True)
     
     if content == 'snowflake':
         search = re.search(r'\d+', ctx.content)

@@ -79,6 +79,7 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
 
 @plugin.listener(hikari.VoiceStateUpdateEvent)
 async def state_update(event: hikari.VoiceStateUpdateEvent):
+    await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
     if event.state.guild_id != cfg[cfg['mode']]['guild']:
         return
 
@@ -89,12 +90,35 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     
     if state.channel_id is None:
         data = db.find_document(stats, {'_id': state.user_id})
+        tm: timedelta
         if data['time_in_vc'] is None:
             tm = datetime.now() - vc_tmp[state.user_id]
         else:
             tm = timedelta(seconds=data['time_in_vc']) + (datetime.now() - vc_tmp[state.user_id])
         
         db.update_document(stats, {'_id': state.user_id}, {'time_in_vc': tm.total_seconds()})
+
+        s = tm.total_seconds()
+        if s > 600:
+            await tools.grant_achievement(state.user_id, 
+                                    '5', plugin.app.rest)
+
+        if s > 7200:
+            await tools.grant_achievement(state.user_id, 
+                                    '6', plugin.app.rest)
+
+        if s > 43_200:
+            await tools.grant_achievement(state.user_id, 
+                                    '7', plugin.app.rest)
+
+        if s > 86_400:
+            await tools.grant_achievement(state.user_id, 
+                                    '8', plugin.app.rest)
+
+        if s > 3_240_000:
+            await tools.grant_achievement(state.user_id, 
+                                    '9', plugin.app.rest)
+
 
 
 @plugin.listener(hikari.StoppingEvent)

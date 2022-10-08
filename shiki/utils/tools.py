@@ -213,11 +213,15 @@ def fetch_content(content):
 achievements = load_data('./settings/achievements')
 
 
-async def grant_achievement(user: hikari.User, achievement):
-    data = db.find_document(users, {'_id': user.id})
+async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, rest: hikari.api.RESTClient = None):
+    data = db.find_document(users, {'_id': user.id if isinstance(user, hikari.User) else user})
     if data['achievements'] == None: return False
     if achievement in data['achievements']: return False
-    else: 
+    else:
+        if isinstance(user, hikari.Snowflake):
+            assert rest is not None, 'user is snowflake but rest is None'
+            user = await rest.fetch_user(user)
+
         achs = data['achievements']
         achs.append(achievement)
         db.update_document(users, {'_id': user.id}, {'achievements': achs})
