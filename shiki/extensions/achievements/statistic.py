@@ -26,10 +26,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from datetime import datetime, timedelta
 import time
 import lightbulb
 import hikari
 from shiki.utils import db, tools
+import string
 
 
 cfg = tools.load_data('./settings/config')
@@ -37,6 +39,8 @@ achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
 stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("Statistic")
+
+vc_tmp = {}
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
@@ -65,10 +69,65 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
         await tools.grant_achievement(user, '1')
 
     # 2
-    if ctx.content.isalpha():
-        await tools.grant_achievement(user, '2')
+    for s in string.ascii_lowercase:
+        if s in ctx.content:
+            await tools.grant_achievement(user, '2')
+            break
 
     db.update_document(stats, {'_id': user.id}, data)
+
+
+@plugin.listener(hikari.VoiceStateUpdateEvent)
+async def state_update(event: hikari.VoiceStateUpdateEvent):
+    if event.state.guild_id != cfg[cfg['mode']]['guild']:
+        return
+
+    state = event.state
+    if state.user_id not in vc_tmp:
+        vc_tmp[state.user_id] = datetime.now()
+        return
+    
+    if state.channel_id is None:
+        data = db.find_document(stats, {'_id': state.user_id})
+        if data['time_in_vc'] is None:
+            tm = datetime.now() - vc_tmp[state.user_id]
+        else:
+            tm = timedelta(seconds=data['time_in_vc']) + (datetime.now() - vc_tmp[state.user_id])
+        
+        db.update_document(stats, {'_id': state.user_id}, {'time_in_vc': tm.total_seconds()})
+
+
+@plugin.listener(hikari.StoppingEvent)
+async def stopping(event: hikari.StoppingEvent):
+    now = datetime.now()
+    for u in vc_tmp:
+        tm = db.find_document(stats, {'_id': u})['time_in_vc']
+        if tm is None:
+            tm = timedelta(seconds=0)
+        else:
+            tm = timedelta(
+                seconds=tm
+            )
+
+        db.update_document(stats, {'_id': u}, {
+            'time_in_vc': (tm + now - vc_tmp[u]).total_seconds()
+        })
+
+
+@plugin.listener(hikari.ShardReadyEvent)
+async def ready(event: hikari.ShardReadyEvent):
+    guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
+    for u in guild.get_voice_states():
+        vc_tmp[u] = datetime.now()
+
+
+@plugin.command
+@lightbulb.command('test', 'A test command')
+@lightbulb.implements(lightbulb.SlashCommand)
+async def test_cmd(ctx: lightbulb.PrefixContext):
+    await ctx.respond(
+        str(db.find_document(stats, {'_id': ctx.user.id}))
+    )
 
 
 def load(bot):

@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 __productname__ = "ShikimoriBot"
-__version__ = "1.0.0a"
+__version__ = "2.0.0a"
 __description__ = "Discord bot coded specially for Euphoverse Discord server"
 __url__ = "https://github.com/JustLian/ShikimoriBot"
 __license__ = "BSD-3-Clause"
