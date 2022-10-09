@@ -38,7 +38,7 @@ cfg = tools.load_data('./settings/config')
 achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
 stats = db.connect().get_database('shiki').get_collection('stats')
-plugin = lightbulb.Plugin("Statistic")
+plugin = lightbulb.Plugin("AchieveStatistic")
 
 vc_tmp = {}
 

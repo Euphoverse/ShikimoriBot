@@ -78,6 +78,12 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
             await update_invites(inviter, ctx)
             return
     fetching_invites = False
+    if ctx.get_guild().member_count() == 100:
+        await tools.grant_achievement(ctx.user, '10')
+    if ctx.get_guild().member_count() == 200:
+        await tools.grant_achievement(ctx.user, '11')
+    if ctx.get_guild().member_count() == 300:
+        await tools.grant_achievement(ctx.user, '12')
 
 
 
@@ -110,9 +116,16 @@ async def update_invites(inviter, ctx):
     data = db.find_document(users, {'_id': inviter.id})
     data2 = db.find_document(stats, {'_id': inviter.id})
     data['invites'] += 1
-    if data['invites'] % 5 == 0 and data['invites'] > data2['invites_claimed']:
+    if data['invites'] == 2: asyncio.create_task(tools.grant_achievement(inviter, 13))
+    if data['invites'] == 5: asyncio.create_task(tools.grant_achievement(inviter, 14))
+    if data['invites'] == 15: asyncio.create_task(tools.grant_achievement(inviter, 15))
+    if data['invites'] == 30: asyncio.create_task(tools.grant_achievement(inviter, 16))
+    if data['invites'] == 100: asyncio.create_task(tools.grant_achievement(inviter, 17))
+    if data['invites'] > data2['invites_claimed']:
         data2['invites_claimed'] = data['invites']
-        data['money'] += 50 * data['invites']
+        if data['invites'] % 5 == 0:
+            data['money'] += 50 * data['invites']
+        await tools.add_xp(inviter, 10)
         db.update_document(stats, {'_id': inviter.id}, data2)
     db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
     db.update_document(users, {'_id': inviter.id}, data)

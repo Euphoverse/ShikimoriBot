@@ -168,9 +168,9 @@ async def dice(ctx: lightbulb.SlashContext):
     db.update_document(users, {'_id': user.id}, {'money': newbalance})
 
     if(ctx.options.bet >= 1000):
-        await tools.add_xp(user, 50, ctx)
+        await tools.add_xp(user, 50)
     else:
-        await tools.add_xp(user, 8, ctx)
+        await tools.add_xp(user, 8)
 
 
 @economy.child
@@ -193,7 +193,7 @@ async def daily(ctx: lightbulb.SlashContext):
             description=f'Вы получили свой ежедневный бонус: {bonus}{currency_emoji}.',
             color=shiki.Colors.SUCCESS
         ).set_footer(text=str(user.username), icon=user.display_avatar_url.url))
-        await tools.add_xp(user, 40, ctx)
+        await tools.add_xp(user, 40)
     else:
         time_left = timedelta(days=1) - (datetime.now() - data['last_daily'])
         await ctx.respond(embed=hikari.Embed(
@@ -216,7 +216,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         if len(ctx.content) > 15: multiplier += 1
         if len(ctx.content) > 50: multiplier += 1
     if db.find_document(users, {'_id': user.id})['sponsor'] != None: multiplier *= 2
-    await tools.add_xp(user, random.randint(1, 3) * multiplier, plugin)
+    await tools.add_xp(user, random.randint(1, 3) * multiplier)
     await asyncio.sleep(30)
     message_cooldown.remove(user.id)
 

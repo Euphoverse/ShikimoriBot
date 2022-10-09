@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 from hikari import Embed, User
 from shiki.utils import db, tools
 import shiki
@@ -43,6 +44,10 @@ def profile(user: User, author: User):
     data = db.find_document(users, {'_id': user.id})
     if data == None:
         return user_not_found()
+    if data['money'] == 555 and user.id == author.id: 
+        asyncio.create_task(tools.grant_achievement(user, '18'))
+    if data['money'] > 10000 and user.id == author.id:
+        asyncio.create_task(tools.grant_achievement(user, '19'))
     em = Embed(
         title=f'Профиль пользователя {user.username}',
         color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR

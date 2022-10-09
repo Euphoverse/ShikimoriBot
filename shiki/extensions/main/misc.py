@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 import random
 import lightbulb
 import hikari
@@ -74,6 +75,7 @@ async def misc(ctx: lightbulb.SlashContext) -> None:
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def dice(ctx: lightbulb.SlashContext) -> None:
+    asyncio.create_task(tools.grant_achievement(ctx.author, '24'))
     await ctx.respond(embed=hikari.Embed(
         title='Кубики',
         description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))

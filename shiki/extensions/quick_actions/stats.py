@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from datetime import datetime
 import lightbulb
 import hikari
 from shiki.utils import db, tools, embeds
@@ -79,7 +80,13 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         data = db.find_document(stats, {'_id': user.id})
         if data == None:
             return ctx.message.respond(embeds.user_not_found())
-        return await ctx.message.respond(f'{user.username} просидел {round(data["time_in_vc"] / 360) / 10} часов в голосовых каналах!')
+        vc_time = data["time_in_vc"]
+        hh = round(vc_time // 3600)
+        mm = round((vc_time // 60) % 60)
+        ss = round(vc_time % 60)
+        if(mm < 10): mm = f'0{mm}'
+        if(ss < 10): ss = f'0{ss}'
+        return await ctx.message.respond(f'{user.username} просидел ``{hh}:{mm}:{ss}`` в голосовых каналах!')
 
 
 def load(bot):

@@ -54,6 +54,14 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         reference_user = reference_message.author
         reference_member = ctx.get_guild().get_member(reference_message.author.id)
 
+    if 'девушкой' in ctx.content or\
+       'встречаться' in ctx.content or\
+       'жен' in ctx.content:
+        return await ctx.message.respond('иди найди себе реальную девушку, man')
+
+    if 'японский' in ctx.content:
+        return await ctx.message.respond('だ、やざなゆやぽ**んす**きい')
+
     if content == 'pin': 
         roles = [k.id for k in ctx.member.get_roles()]
         if cfg[cfg['mode']]['roles']['admin'] not in roles or\

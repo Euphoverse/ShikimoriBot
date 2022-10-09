@@ -155,7 +155,7 @@ def get_mods(guild: Guild) -> List[Member]:
     return mods
 
 
-async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
+async def add_xp(user: hikari.Member, amount: int):
     data = db.find_document(users, {'_id': user.id})
     xp = data['xp'] + amount
     needed_xp = calc_xp(data['level'] + 1)
@@ -165,7 +165,7 @@ async def add_xp(user: hikari.Member, amount: int, ctx: lightbulb.SlashContext):
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
         reward += calc_coins(data['level'])
-        await ctx.bot.rest.create_message(
+        await user.app.rest.create_message(
             channel=cfg[cfg['mode']]['channels']['actions'],
             embed=Embed(
                 title='Повышение уровня',
@@ -226,7 +226,7 @@ achievements = load_data('./settings/achievements')
 
 async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, rest: hikari.api.RESTClient = None):
     data = db.find_document(users, {'_id': user.id if isinstance(user, hikari.User) else user})
-    if data['achievements'] == None: return False
+    if data == None or data['achievements'] == None: return False
     if achievement in data['achievements']: return False
     else:
         if isinstance(user, hikari.Snowflake):
@@ -236,6 +236,7 @@ async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, r
         achs = data['achievements']
         achs.append(achievement)
         db.update_document(users, {'_id': user.id}, {'achievements': achs})
+        await add_xp(user, 10)
         achievement_title = achievements[achievement]['title']
         achievement_desc = achievements[achievement]['description']
         await user.app.rest.create_message(

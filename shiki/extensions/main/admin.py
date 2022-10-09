@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 import lightbulb
 import hikari
 from shiki.utils import db, tools
@@ -33,6 +34,7 @@ import shiki
 
 
 cfg = tools.load_data('./settings/config')
+achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
 stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("Admin")
@@ -146,6 +148,38 @@ async def reset_user(ctx: lightbulb.SlashContext):
             description=f'Действие обнуления было отменено',
             color=shiki.Colors.ERROR
         ).set_footer(text='Обнуление статистики', icon=ctx.author.display_avatar_url.url))
+
+
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'achievement',
+    'Номер ачивки',
+    int,
+    required=True
+)
+@lightbulb.command(
+    'revoke',
+    'Удалить ачивку у пользователя',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def reset_user(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None: user = ctx.author
+    a_id = str(ctx.options.achievement)
+    asyncio.create_task(tools.revoke_achievement(user, a_id))
+    await ctx.respond(embed=hikari.Embed(
+        title='Выполнено',
+        description=f'Ачивка ``#{a_id} - {achievements[a_id]["title"]}`` была удалена у **{user}**',
+        color=shiki.Colors.SUCCESS
+    ).set_footer(text='Обнуление ачивки', icon=ctx.author.display_avatar_url.url))
 
 
 def load(bot):
