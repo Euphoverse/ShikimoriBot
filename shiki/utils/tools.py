@@ -255,3 +255,17 @@ async def revoke_achievement(user: hikari.User, achievement):
         achievements.remove(achievement)
         db.update_document(users, {'_id': user.id}, {'achievements': achievements})
         return True
+
+
+def get_force_achievements():
+    output = []
+    for ac in achievements.values():
+        if 'force' in ac and ac['force'] == True:
+            output.append(ac['title'])
+    return output
+
+
+def get_achievement_id(name):
+    for key, value in achievements.items():
+        if value['title'] == name:
+            return key

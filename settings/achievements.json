@@ -123,5 +123,73 @@
         "title": "Куб",
         "description": "Бросте кубик командой /dice",
         "hidden": false
+    },
+    "25": {
+        "title": "Большая Перспектива",
+        "description": "Закиньте на сервер 1 Буст",
+        "hidden": false
+    },
+    "26": {
+        "title": "Нет тебе места среди людей",
+        "description": "Зайдите в тарков",
+        "hidden": false
+    },
+    "27": {
+        "title": "Я у мамы молодец",
+        "description": "Получите благодарность от ст. Администратора",
+        "hidden": false,
+        "force": true
+    },
+    "28": {
+        "title": "Герцог Мемов",
+        "description": "Станьте известным Мемоделом на сервере",
+        "hidden": false,
+        "force": true
+    },
+    "29": {
+        "title": "Забанен",
+        "description": "Пинганите админа и получите за это мьют",
+        "hidden": false,
+        "force": true
+    },
+    "30": {
+        "title": "Я получил власть которая и не снилась моему отцу",
+        "description": "Пройдите успешную стажировку на роль Хелпера",
+        "hidden": false,
+        "force": true
+    },
+    "31": {
+        "title": "О да папочка, жёстче!",
+        "description": "Получите демоут от JustLian-(а)",
+        "hidden": false,
+        "force": true
+    },
+    "32": {
+        "title": "Миротворец",
+        "description": "Разрешите конфликт между пользователями",
+        "hidden": false,
+        "force": true
+    },
+    "33": {
+        "title": "Контрибьютор",
+        "description": "Предложите идею которую примут в работу",
+        "hidden": false,
+        "force": true
+    },
+    "34": {
+        "title": "Пётр I",
+        "description": "Станьте партнёром Euphoverse по любой схеме",
+        "hidden": false,
+        "force": true
+    },
+    "35": {
+        "title": "Меломан",
+        "description": "Послушайте Hori-Radio",
+        "hidden": false
+    },
+    "36": {
+        "title": "ВебСкам",
+        "description": "Запустите стрим в любом голосовом канале",
+        "hidden": false
     }
 }

@@ -170,7 +170,7 @@ async def reset_user(ctx: lightbulb.SlashContext):
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def reset_user(ctx: lightbulb.SlashContext):
+async def remove_achievement(ctx: lightbulb.SlashContext):
     user = ctx.options.user
     if user == None: user = ctx.author
     a_id = str(ctx.options.achievement)
@@ -180,6 +180,47 @@ async def reset_user(ctx: lightbulb.SlashContext):
         description=f'Ачивка ``#{a_id} - {achievements[a_id]["title"]}`` была удалена у **{user}**',
         color=shiki.Colors.SUCCESS
     ).set_footer(text='Обнуление ачивки', icon=ctx.author.display_avatar_url.url))
+
+
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'achievement',
+    'Ачивка',
+    str,
+    required=True,
+    choices=tools.get_force_achievements()
+)
+@lightbulb.command(
+    'grant',
+    'Выдать ачивку пользователю',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def give_achievement(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None:
+        user = ctx.author
+    achievement = tools.get_achievement_id(ctx.options.achievement)
+    given_succesfully = await tools.grant_achievement(user, achievement)
+    if given_succesfully:
+        await ctx.respond(embed=hikari.Embed(
+            title='Выполнено',
+            description=f'Ачивка ``#{achievement} - {ctx.options.achievement}`` была выдана **{user}**',
+            color=shiki.Colors.SUCCESS
+        ).set_footer(text='Выдача ачивки', icon=ctx.author.display_avatar_url.url))
+    else:
+        await ctx.respond(embed=hikari.Embed(
+            title='Неудача',
+            description=f'Ачивка ``#{achievement} - {ctx.options.achievement}`` уже имеется у **{user}**',
+            color=shiki.Colors.ERROR
+        ).set_footer(text='Выдача ачивки', icon=ctx.author.display_avatar_url.url))
 
 
 def load(bot):

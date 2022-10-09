@@ -36,41 +36,18 @@ cfg = tools.load_data('./settings/config')
 achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
 stats = db.connect().get_database('shiki').get_collection('stats')
-plugin = lightbulb.Plugin("AchievePresence")
+plugin = lightbulb.Plugin("AchieveRoles")
 
 
-@plugin.listener(hikari.PresenceUpdateEvent)
-async def update(ctx: hikari.PresenceUpdateEvent):
-    if ctx.guild_id != cfg[cfg['mode']]['guild']: return
-    if ctx.get_user().is_bot: return
-    await activity_check(ctx.presence, ctx.get_user())
-
-
-@plugin.listener(hikari.ShardReadyEvent)
-async def ready(ctx: hikari.ShardReadyEvent):
-    members = await plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild'])
-    for m in members:
-        if m.is_bot: continue
-        asyncio.create_task(activity_check(m.get_presence(), m))
-
-
-async def activity_check(presence, user):
-    if presence == None: return
-
-    if len(presence.activities) != 0: 
-        game = presence.activities[0].name
-        if game == "Dota 2":
-            asyncio.create_task(tools.grant_achievement(user, '20'))
-        if game == "osu!":
-            asyncio.create_task(tools.grant_achievement(user, '21'))
-        if game == "League of Legends":
-            asyncio.create_task(tools.grant_achievement(user, '22'))
-        if game == "Minecraft" or\
-           game == "Lunar Client" or\
-           game == "LabyMod":
-            asyncio.create_task(tools.grant_achievement(user, '23'))
-        if game == 'Escape from Tarkov':
-            asyncio.create_task(tools.grant_achievement(user, '26'))
+@plugin.listener(hikari.MemberUpdateEvent)
+async def update(ctx: hikari.MemberUpdateEvent):
+    old_roles = ctx.old_member.role_ids
+    new_roles = ctx.member.role_ids
+    if len(new_roles) <= len(old_roles): return
+    added_role = [r for r in new_roles if r not in old_roles][0]
+    if added_role != cfg[cfg['mode']]['roles']['boost']: return
+    await tools.grant_achievement(ctx.user, '25')
+    await tools.add_xp(ctx.user, 200)
 
 
 def load(bot):

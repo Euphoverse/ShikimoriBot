@@ -42,7 +42,8 @@ _LOG = logging.getLogger('core.bot')
 dotenv.load_dotenv()
 bot = lightbulb.BotApp(
     os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'],
-    intents=hikari.Intents.ALL)
+    intents=hikari.Intents.ALL,
+    default_enabled_guilds=cfg[cfg['mode']]['guild'])
 if cfg['mode'] == 'test':
     _LOG.warning('Bot is running in test mode!')
 

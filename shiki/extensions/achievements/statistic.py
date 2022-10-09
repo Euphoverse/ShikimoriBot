@@ -80,9 +80,9 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
 
 @plugin.listener(hikari.VoiceStateUpdateEvent)
 async def state_update(event: hikari.VoiceStateUpdateEvent):
-    await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
     if event.state.guild_id != cfg[cfg['mode']]['guild']:
         return
+    await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
 
     state = event.state
     if state.user_id not in vc_tmp:
@@ -119,6 +119,12 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
         if s > 3_240_000:
             await tools.grant_achievement(state.user_id, 
                                     '9', plugin.app.rest)
+
+    if state.channel_id == cfg[cfg['mode']]['channels']['radio']:
+        await tools.grant_achievement(event.state.user_id, '35', plugin.bot.rest)
+    
+    if state.is_streaming == True:
+        await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
 
 
 
