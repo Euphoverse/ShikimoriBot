@@ -26,15 +26,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import asyncio
 import lightbulb
 import hikari
-from shiki.utils import db, tools
+from shiki.utils import db, tools, embeds
 
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("QuickVoice")
+stats = db.connect().get_database('shiki').get_collection('stats')
+plugin = lightbulb.Plugin("QuickStats")
+emoji_denied = cfg['emojis']['access_denied']
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
@@ -44,52 +44,42 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     raw_content = ctx.content.lower()
     if not raw_content.startswith('шики'): return
     content = tools.fetch_content(raw_content)
-
+    
     reference_user = ctx.message.message_reference
     if reference_user != None:
         reference_id = ctx.message.message_reference.id
         reference_message = await ctx.get_channel().fetch_message(reference_id)
         reference_user = reference_message.author
-        reference_state = ctx.get_guild().get_voice_state(reference_user)
     
-    if content == 'move':
-        roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
-           cfg[cfg['mode']]['roles']['mod'] not in roles:
-           return
-        if reference_user == None: return
-        author_state = ctx.get_guild().get_voice_state(ctx.author_id)
-        if reference_state == None:
-            return await ctx.message.respond('%s не в ГК <:1720kannauhh:1028186197287247874>' % reference_user.mention,
-                                             reply=True)
-        if author_state == None:
-            return await ctx.message.respond('Ты не в ГК <:9380fuminodepression3:1027509992774975518>', reply=True)
-        await reference_user.edit(voice_channel=author_state.channel_id)
-        return await ctx.message.respond(
-            'Переместила <:5514kannasleep:1028186236990537749>',
-            reply=True
-        )
+    if content == 'messages_total':
+        if reference_user == None:
+            user = ctx.author
+        else: 
+            user = reference_user
+        data = db.find_document(stats, {'_id': user.id})
+        if data == None:
+            return ctx.message.respond(embeds.user_not_found())
+        return await ctx.message.respond(f'{user.username} отправил {data["messages_total"]} сообщений за всё время!')
     
-    if content == 'move all':
-        pass
+    if content == 'messages_today':
+        if reference_user == None:
+            user = ctx.author
+        else: 
+            user = reference_user
+        data = db.find_document(stats, {'_id': user.id})
+        if data == None:
+            return ctx.message.respond(embeds.user_not_found())
+        return await ctx.message.respond(f'{user.username} отправил {data["messages_today"]} сообщений за сегодня!')
 
-    if content == 'mute all' or content == 'unmute all':
-        roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
-           cfg[cfg['mode']]['roles']['mod'] not in roles:
-           return
-        
-        voice = ctx.get_guild().get_voice_state(ctx.author_id)
-        guild = plugin.bot.cache.get_guild(ctx.guild_id)
-        users = [v for v in guild.get_voice_states().values()
-                if v.channel_id == voice.channel_id and v.user_id != voice.user_id]
-
-        if content == 'mute all':
-            for v in users:
-                asyncio.create_task(v.member.edit(mute=True))
-        else:
-            for v in users:
-                asyncio.create_task(v.member.edit(mute=False))
+    if content == 'vc_hours':
+        if reference_user == None:
+            user = ctx.author
+        else: 
+            user = reference_user
+        data = db.find_document(stats, {'_id': user.id})
+        if data == None:
+            return ctx.message.respond(embeds.user_not_found())
+        return await ctx.message.respond(f'{user.username} просидел {round(data["time_in_vc"] / 360) / 10} часов в голосовых каналах!')
 
 
 def load(bot):

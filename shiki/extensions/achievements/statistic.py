@@ -69,10 +69,11 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
         await tools.grant_achievement(user, '1')
 
     # 2
-    for s in string.ascii_lowercase:
-        if s in ctx.content:
-            await tools.grant_achievement(user, '2')
-            break
+    if ctx.content != None:
+        for s in string.ascii_lowercase:
+            if s in ctx.content:
+                await tools.grant_achievement(user, '2')
+                break
 
     db.update_document(stats, {'_id': user.id}, data)
 

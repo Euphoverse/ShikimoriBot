@@ -26,7 +26,7 @@
             "messages_total": 0,
             "messages_today": 0,
             "messages_date": null,
-            "time_in_vc": null
+            "time_in_vc": 0
         }
     },
     "mod_roles": [
@@ -46,7 +46,8 @@
             "mods_only": 1011596265475280919,
             "announcements": 1015462275529846835,
             "actions": 1011596265475280927,
-            "errors": 1025782656459358278
+            "errors": 1025782656459358278,
+            "information": 1015236766455832629
         },
         "roles": {
             "events_manager": 1011596265018097687,
@@ -68,7 +69,8 @@
             "mods_only": 981819155462377473,
             "announcements": 1002054658824613998,
             "actions": 990061673660428358,
-            "errors": 1025782656459358278
+            "errors": 1025782656459358278,
+            "information": 981842042609094686
         },
         "roles": {
             "events_manager": 989749982305329152,

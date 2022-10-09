@@ -30,7 +30,6 @@ from datetime import datetime, timedelta, timezone
 import re
 import lightbulb
 import hikari
-from numpy import True_
 from shiki.utils import db, tools
 import time
 
@@ -43,6 +42,7 @@ plugin = lightbulb.Plugin("QuickMisc")
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if ctx.author.is_bot: return
+    if ctx.content == None: return
     raw_content = ctx.content.lower()
     if not raw_content.startswith('шики'): return
     content = tools.fetch_content(raw_content)
@@ -62,6 +62,10 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         snowflake_id = int(search.group(0))
         snowflake_date = hikari.Snowflake(snowflake_id).created_at
         return await ctx.message.respond(f'<t:{round(time.mktime(snowflake_date.timetuple()))}>', reply=True)
+
+    if content == 'help':
+        help_channel = cfg[cfg['mode']]['channels']['information']
+        return await ctx.message.respond(f'Список быстрых команд находится в канале <#{help_channel}> <a:4426ganyuspinfingers:1027509918783242270>')
 
 
 def load(bot):

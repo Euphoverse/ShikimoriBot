@@ -42,9 +42,17 @@ plugin = lightbulb.Plugin("QuickChat")
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if ctx.author.is_bot: return
+    if ctx.content == None: return
     raw_content = ctx.content.lower()
     if not raw_content.startswith('шики'): return
     content = tools.fetch_content(raw_content)
+
+    reference_user = ctx.message.message_reference
+    if reference_user != None:
+        reference_id = ctx.message.message_reference.id
+        reference_message = await ctx.get_channel().fetch_message(reference_id)
+        reference_user = reference_message.author
+        reference_member = ctx.get_guild().get_member(reference_message.author.id)
 
     if content == 'pin': 
         roles = [k.id for k in ctx.member.get_roles()]
@@ -71,34 +79,27 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         )
 
     if content == 'avatar':
-        if ctx.message.message_reference == None: 
-            reference = ctx.author.display_avatar_url
-        else: 
-            reference_id = ctx.message.message_reference.id
-            reference = await ctx.get_channel().fetch_message(reference_id)
-            reference = reference.author.display_avatar_url
-        return await ctx.message.respond(reference, reply=True)
+        if reference_user == None:
+            user = ctx.author
+        else:
+            user = reference_user
+        return await ctx.message.respond(user.display_avatar_url, reply=True)
 
     if content == 'time since':
-        reference = ctx.message.message_reference
-        if reference == None: return
-        else:
-            reference = ctx.message.message_reference.id
-            reference = await ctx.get_channel().fetch_message(reference)
-        time_since = datetime.now(tz=timezone.utc) - reference.timestamp
-        return await ctx.message.respond('Прошло `%s` <a:8618blondenekowave:1027902961520754698>' % str(time_since).split('.')[0], reply=True)
+        if reference_message != None:
+            message = reference_message
+            time_since = datetime.now(tz=timezone.utc) - message.timestamp
+            return await ctx.message.respond('Прошло `%s` <a:8618blondenekowave:1027902961520754698>' % str(time_since).split('.')[0], reply=True)
 
     if content == 'mod':
-        reference = ctx.message.message_reference
-        if reference == None: reference = ctx.author
+        if reference_user == None:
+            user = ctx.author
         else:
-            reference = ctx.message.message_reference.id
-            reference = await ctx.get_channel().fetch_message(reference)
-            reference = reference.author
-        data = db.find_document(users, {'_id': reference.id})
+            user = reference_user
+        data = db.find_document(users, {'_id': user.id})
         if data == None or data['mod'] == None: moderator = 'никто'
         else: moderator = ctx.get_guild().get_member(data['mod'])
-        return await ctx.message.respond(f'Модератором {reference.username} является {moderator} <a:7755kannasurprised:1028186246545154068>',
+        return await ctx.message.respond(f'Модератором {user.username} является {moderator} <a:7755kannasurprised:1028186246545154068>',
                                         reply=True)
 
     if content == 'slowmode':
@@ -114,13 +115,11 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         return await ctx.message.respond(f'Установила слоумод **{number}**c <:7652_ZeroTwoUwU:1027903090940203009>', reply=True)
 
     if content == 'join':
-        reference = ctx.message.message_reference
-        if reference == None: reference = ctx.member
+        if reference_user == None:
+            user = ctx.member
         else:
-            reference = ctx.message.message_reference.id
-            reference = await ctx.get_channel().fetch_message(reference)
-            reference = ctx.get_guild().get_member(reference.author.id)
-        return await ctx.message.respond(f'<t:{round(time.mktime(reference.joined_at.timetuple()))}>', reply=True)
+            user = reference_member
+        return await ctx.message.respond(f'<t:{round(time.mktime(user.joined_at.timetuple()))}>', reply=True)
 
     if content == 'online':
         online = 0

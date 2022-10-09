@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 import random
 import lightbulb
 import hikari
-from shiki.utils import db, tools
+from shiki.utils import db, tools, embeds
 import shiki
 
 
@@ -79,11 +79,7 @@ async def transfer(ctx: lightbulb.SlashContext):
     recipient = ctx.options.user
 
     if recipient.is_bot:
-        return await ctx.respond(embed=hikari.Embed(
-            title='Ошибка',
-            description='Вы не можете перевести деньги боту!',
-            color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Некорректные данные'))
+        return await ctx.respond(embed=embeds.user_is_bot())
 
     if(sender.id == recipient.id):
         return await ctx.respond(embed=hikari.Embed(
@@ -216,8 +212,9 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if user.id in message_cooldown: return
     message_cooldown.append(user.id)
     multiplier = 1
-    if len(ctx.content) > 15: multiplier += 1
-    if len(ctx.content) > 50: multiplier += 1
+    if ctx.content != None:
+        if len(ctx.content) > 15: multiplier += 1
+        if len(ctx.content) > 50: multiplier += 1
     if db.find_document(users, {'_id': user.id})['sponsor'] != None: multiplier *= 2
     await tools.add_xp(user, random.randint(1, 3) * multiplier, plugin)
     await asyncio.sleep(30)

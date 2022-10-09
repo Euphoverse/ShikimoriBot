@@ -28,7 +28,7 @@
 
 import lightbulb
 import hikari
-from shiki.utils import db, tools
+from shiki.utils import db, tools, embeds
 import shiki
 
 
@@ -55,35 +55,9 @@ emoji_denied = cfg['emojis']['access_denied']
 async def profile(ctx: lightbulb.SlashContext):
     if ctx.options.user is None:
         user = ctx.author
-    elif ctx.options.user.is_bot:
-        user = ctx.author
-        return await ctx.respond(embed=hikari.Embed(
-            title='Ошибка',
-            description='У ботов нет профилей!',
-            color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Некорректные данные'))
     else:
         user = ctx.options.user
-
-    data = db.find_document(users, {'_id': user.id})
-    em = hikari.Embed(
-        title=f'Профиль пользователя {user.username}',
-        color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
-    )
-    em.set_footer(text=f'Запросил {ctx.author.username}',
-                  icon=ctx.author.display_avatar_url.url)
-    em.set_thumbnail(user.display_avatar_url.url)
-
-    em.add_field(
-        'Спонсорка', '```Отсутствует```' if data['sponsor'] is None else '```Активна с ' + data['sponsor'] + '```')
-    em.add_field('Всего пожертвовано', f"```{data['donated']} рублей```", inline=True)
-    em.add_field('Уровень', f"```{data['level']}```", inline=True)
-    em.add_field('Опыт', '```%s/%s```' %
-                 (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
-    em.add_field('Баланс', f'```{data["money"]}{currency_emoji}```', inline=True)
-    em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
-
-    await ctx.respond(embed=em)
+    await ctx.respond(embed=embeds.profile(user, ctx.author))
 
 
 @plugin.command
@@ -121,12 +95,18 @@ async def leaderboard(ctx: lightbulb.SlashContext):
     suff = ''
     if type == 'money': suff = currency_emoji
     for user_id in list(data)[:10]:
+        user = guild.get_member(user_id)
+        if user == None: 
+            username = f'(пользователь вышел)'
+        else: 
+            username = user.username
         pref = ''
         if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[user_id])}'
+        pref = f'#{index}'
         if index == 1: pref = "🥇 "
         if index == 2: pref = "🥈 "
         if index == 3: pref = "🥉 "
-        em.add_field(f'**{pref}#{index}. {guild.get_member(user_id).username}**',
+        em.add_field(f'**{pref} {username}**',
                      f'**{type.capitalize()}**: {data[user_id]}{suff}')
         index += 1
     await ctx.respond(em)
