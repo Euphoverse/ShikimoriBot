@@ -1,195 +1,177 @@
 {
     "0": {
         "title": "Начало положено",
-        "description": "Отправьте своё первое сообщение",
-        "hidden": false
+        "description": "Отправьте своё первое сообщение"
     },
     "1": {
         "title": "Поднимаем актив",
-        "description": "Отправьте 100 сообщений за один день",
-        "hidden": false
+        "description": "Отправьте 100 сообщений за один день"
     },
     "2": {
         "title": "О! Вы из Англии?",
-        "description": "Используйте английский язык в своём сообщении",
-        "hidden": false
+        "description": "Используйте английский язык в своём сообщении"
     },
     "3": {
         "title": "Ты умеешь говорить?",
-        "description": "Подключитесь к любому голосовому каналу",
-        "hidden": false
+        "description": "Подключитесь к любому голосовому каналу"
     },
     "4": {
         "title": "Перерождение",
         "description": "Перезайдите на сервер",
-        "hidden": true
+        "attributes": ["hidden"]
     },
     "5": {
         "title": "Начало положено 2.0",
-        "description": "Просидите 10 минут в ГК",
-        "hidden": false
+        "description": "Просидите 10 минут в ГК"
     },
     "6": {
         "title": "Любитель поговорить",
-        "description": "Просидите 2 часа в ГК",
-        "hidden": false
+        "description": "Просидите 2 часа в ГК"
     },
     "7": {
         "title": "Как выйти?",
-        "description": "Просидите 12 часов в ГК",
-        "hidden": false
+        "description": "Просидите 12 часов в ГК"
     },
     "8": {
         "title": "ГДЕ КНОПКА \"ОТКЛЮЧИТЬСЯ\"?!",
-        "description": "Просидите 24 часа в ГК",
-        "hidden": false
+        "description": "Просидите 24 часа в ГК"
     },
     "9": {
         "title": "Говорящий Маяк",
-        "description": "Проведите в голосовых чатах суммарно 900 часов",
-        "hidden": false
+        "description": "Проведите в голосовых чатах суммарно 900 часов"
     },
     "10": {
         "title": "Соточка",
-        "description": "Станьте сотым пользователем",
-        "hidden": false
+        "description": "Станьте сотым пользователем"
     },
     "11": {
         "title": "Двойка-два-нуля",
-        "description": "Станьте двухсотым пользователем",
-        "hidden": false
+        "description": "Станьте двухсотым пользователем"
     },
     "12": {
         "title": "Триста... Мы не можем это писать здесь",
-        "description": "Станьте трёхсотым пользователем",
-        "hidden": false
+        "description": "Станьте трёхсотым пользователем"
     },
     "13": {
         "title": "Вербовка",
-        "description": "Пригласите 2 пользователей на сервер",
-        "hidden": false
+        "description": "Пригласите 2 пользователей на сервер"
     },
     "14": {
         "title": "Прораб",
-        "description": "Пригласите 5 пользователей на сервер",
-        "hidden": false
+        "description": "Пригласите 5 пользователей на сервер"
     },
     "15": {
         "title": "Великий Полководец",
-        "description": "Пригласите 15 пользователей на сервер",
-        "hidden": false
+        "description": "Пригласите 15 пользователей на сервер"
     },
     "16": {
         "title": "Много друзей не бывает!",
-        "description": "Пригласите 30 пользователей на сервер",
-        "hidden": false
+        "description": "Пригласите 30 пользователей на сервер"
     },
     "17": {
         "title": "Не имей 100 рублей, а имей 100 друзей",
-        "description": "Пригласите 100 пользователей на сервер",
-        "hidden": false
+        "description": "Пригласите 100 пользователей на сервер"
     },
     "18": {
         "title": "Фуга",
         "description": "Напишите /profile с балансом 555",
-        "hidden": true
+        "attributes": ["hidden"]
     },
     "19": {
         "title": "Знатный Купец",
-        "description": "Ваш баланс должен превышать 10 тыс. Валюты.",
-        "hidden": false
+        "description": "Ваш баланс должен превышать 10 тыс. Валюты."
     },
     "20": {
         "title": "1000-7",
-        "description": "Зайдите в доту",
-        "hidden": false
+        "description": "Зайдите в доту"
     },
     "21": {
         "title": "тык-тык-тык-тык-тык",
-        "description": "Зайдите в osu!",
-        "hidden": false
+        "description": "Зайдите в osu!"
     },
     "22": {
         "title": "993+7",
-        "description": "Зайдите в лигу легенд",
-        "hidden": false
+        "description": "Зайдите в лигу легенд"
     },
     "23": {
         "title": "МАЙНКРААААФТ",
-        "description": "Зайдите в Minecraft",
-        "hidden": false
+        "description": "Зайдите в Minecraft"
     },
     "24": {
         "title": "Куб",
-        "description": "Бросте кубик командой /dice",
-        "hidden": false
+        "description": "Бросте кубик командой /dice"
     },
     "25": {
         "title": "Большая Перспектива",
-        "description": "Закиньте на сервер 1 Буст",
-        "hidden": false
+        "description": "Закиньте на сервер 1 Буст"
     },
     "26": {
         "title": "Нет тебе места среди людей",
-        "description": "Зайдите в тарков",
-        "hidden": false
+        "description": "Зайдите в тарков"
     },
     "27": {
         "title": "Я у мамы молодец",
         "description": "Получите благодарность от ст. Администратора",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "28": {
         "title": "Герцог Мемов",
         "description": "Станьте известным Мемоделом на сервере",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "29": {
         "title": "Забанен",
         "description": "Пинганите админа и получите за это мьют",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "30": {
         "title": "Я получил власть которая и не снилась моему отцу",
         "description": "Пройдите успешную стажировку на роль Хелпера",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "31": {
         "title": "О да папочка, жёстче!",
         "description": "Получите демоут от JustLian-(а)",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "32": {
         "title": "Миротворец",
         "description": "Разрешите конфликт между пользователями",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "33": {
         "title": "Контрибьютор",
         "description": "Предложите идею которую примут в работу",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "34": {
         "title": "Пётр I",
         "description": "Станьте партнёром Euphoverse по любой схеме",
-        "hidden": false,
-        "force": true
+        "attributes": ["force"]
     },
     "35": {
         "title": "Меломан",
-        "description": "Послушайте Hori-Radio",
-        "hidden": false
+        "description": "Послушайте Hori-Radio"
     },
     "36": {
         "title": "ВебСкам",
-        "description": "Запустите стрим в любом голосовом канале",
-        "hidden": false
+        "description": "Запустите стрим в любом голосовом канале"
+    },
+    "37": {
+        "title": "Поднимаем рейтинг",
+        "description": "Используйте команду /like"
+    },
+    "38": {
+        "title": "Ооо вы слушаете Шопена..?",
+        "description": "Включите любой трек используя команду /play"
+    },
+    "39": {
+        "title": "Dj",
+        "description": "Включите более 150 треков используя команду /play"
+    },
+    "40": {
+        "title": "Киберспорт",
+        "description": "Победите в турнире",
+        "attributes": ["force"]
     }
 }

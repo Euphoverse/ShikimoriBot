@@ -26,7 +26,8 @@
             "messages_total": 0,
             "messages_today": 0,
             "messages_date": null,
-            "time_in_vc": 0
+            "time_in_vc": 0,
+            "play_uses": 0
         }
     },
     "mod_roles": [

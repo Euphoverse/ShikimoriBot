@@ -260,12 +260,13 @@ async def revoke_achievement(user: hikari.User, achievement):
 def get_force_achievements():
     output = []
     for ac in achievements.values():
-        if 'force' in ac and ac['force'] == True:
+        if 'attributes' in ac and\
+           'force' in ac['attributes']:
             output.append(ac['title'])
     return output
 
 
-def get_achievement_id(name):
+def get_achievement_id(title):
     for key, value in achievements.items():
-        if value['title'] == name:
+        if value['title'] == title:
             return key
