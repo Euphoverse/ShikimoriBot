@@ -45,9 +45,15 @@ async def update(ctx: hikari.MemberUpdateEvent):
     new_roles = ctx.member.role_ids
     if len(new_roles) <= len(old_roles): return
     added_role = [r for r in new_roles if r not in old_roles][0]
-    if added_role != cfg[cfg['mode']]['roles']['boost']: return
-    await tools.grant_achievement(ctx.user, '25')
-    await tools.add_xp(ctx.user, 200)
+    # Server boost role
+    if added_role == cfg[cfg['mode']]['roles']['boost']:
+        await tools.grant_achievement(ctx.user, '25')
+        await tools.add_xp(ctx.user, 200)
+
+    # Color roles
+    color_roles = cfg[cfg['mode']]['roles']['colors']
+    if added_role in color_roles:
+        await tools.grant_achievement(ctx.user, '42')
 
 
 def load(bot):

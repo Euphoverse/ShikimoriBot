@@ -53,12 +53,10 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
     if data == None:
         return
 
-    # 0
     data['messages_total'] += 1
     if data['messages_total'] == 1:
         await tools.grant_achievement(user, '0')
 
-    # 1
     data['messages_today'] += 1
     if data['messages_date'] == None:
         data['messages_date'] = time.time() // 86400
@@ -68,7 +66,6 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
     if data['messages_today'] == 100:
         await tools.grant_achievement(user, '1')
 
-    # 2
     if ctx.content != None:
         for s in string.ascii_lowercase:
             if s in ctx.content:
@@ -91,6 +88,7 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     
     if state.channel_id is None:
         data = db.find_document(stats, {'_id': state.user_id})
+        if data is None: return
         tm: timedelta
         if data['time_in_vc'] is None:
             tm = datetime.now() - vc_tmp[state.user_id]
@@ -123,6 +121,10 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     if state.channel_id == cfg[cfg['mode']]['channels']['radio']:
         await tools.grant_achievement(event.state.user_id, '35', plugin.bot.rest)
     
+    data = tools.load_data('./data/events')
+    if state.channel_id in [e['channel'] for e in data.values() if e['started'] == True]:
+        await tools.grant_achievement(event.state.user_id, '43', plugin.bot.rest)
+    
     if state.is_streaming == True:
         await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
 
@@ -131,6 +133,7 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
 @plugin.listener(hikari.StoppingEvent)
 async def stopping(event: hikari.StoppingEvent):
     now = datetime.now()
+    if vc_tmp is None: return
     for u in vc_tmp:
         tm = db.find_document(stats, {'_id': u})['time_in_vc']
         if tm is None:
