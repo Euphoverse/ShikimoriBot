@@ -48,6 +48,7 @@ class Colors:
     WARNING = Color.from_hex_code('#a14e7e')
     WAIT = Color.from_hex_code('#c0c1cb')
     SPONSOR = Color.from_hex_code('#95f9e3')
+    ACHIEVEMENT = Color.from_hex_code('#c799ff')
 
     ANC_HIGH = Color.from_hex_code('#85005f')
     ANC_LOW = Color.from_hex_code('#a2a5ff')

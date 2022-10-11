@@ -42,8 +42,9 @@ plugin = lightbulb.Plugin("AchievePresence")
 @plugin.listener(hikari.PresenceUpdateEvent)
 async def update(ctx: hikari.PresenceUpdateEvent):
     if ctx.guild_id != cfg[cfg['mode']]['guild']: return
-    if ctx.get_user().is_bot: return
-    await activity_check(ctx.presence, ctx.get_user())
+    user = await ctx.fetch_user()
+    if user.is_bot: return
+    await activity_check(ctx.presence, user)
 
 
 @plugin.listener(hikari.ShardReadyEvent)

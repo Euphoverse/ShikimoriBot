@@ -64,14 +64,13 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
 
     if content == 'pin': 
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
            cfg[cfg['mode']]['roles']['mod'] not in roles:
            return
 
         reference = ctx.message.message_reference
         if reference == None:
-            return await plugin.app.rest.create_message(
-                ctx.channel_id,
+            return await ctx.message.respond(
                 'Ты не указал какое сообщение закрепить <:2987zerotwo:1027903070572662834>',
                 reply=True
             )
@@ -80,8 +79,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
             ctx.channel_id,
             reference.id
         )
-        return await plugin.app.rest.create_message(
-            ctx.channel_id,
+        return await ctx.message.respond(
             'Закрепила <:2530cirowo:1027509894284329032>',
             reply=True
         )
@@ -112,7 +110,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
 
     if content == 'slowmode':
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
            cfg[cfg['mode']]['roles']['mod'] not in roles:
            return
         channel = ctx.get_channel()

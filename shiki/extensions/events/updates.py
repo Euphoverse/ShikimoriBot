@@ -69,7 +69,7 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
         embed.set_footer('Автоматическое сообщение',
                          icon=plugin.bot.get_me().display_avatar_url.url)
         embed.set_image(image_url)
-        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '@everyon', embed=embed, mentions_everyone=True, role_mentions=True)
+        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '@everyone', embed=embed, mentions_everyone=True, role_mentions=True)
         tools.update_data('./data/events', data)
         return
 

@@ -241,7 +241,11 @@ async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, r
         achievement_desc = achievements[achievement]['description']
         await user.app.rest.create_message(
             cfg[cfg['mode']]['channels']['actions'],
-            f'{user.mention}, вы получили достижение:\n``{achievement_title} - {achievement_desc}``',
+            f'{user.mention}', embed=Embed(
+                title=f'{user.username} получил достижение',
+                description=f'Получено достижение ``{achievement_title} - {achievement_desc}``',
+                color=shiki.Colors.ACHIEVEMENT
+            ).set_footer(f''),
             user_mentions=True)
         return True
 

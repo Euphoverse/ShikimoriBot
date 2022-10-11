@@ -54,7 +54,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     
     if content == 'move':
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
            cfg[cfg['mode']]['roles']['mod'] not in roles:
            return
         if reference_user == None: return
@@ -75,7 +75,7 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
 
     if content == 'mute all' or content == 'unmute all':
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles or\
+        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
            cfg[cfg['mode']]['roles']['mod'] not in roles:
            return
         
