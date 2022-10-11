@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import logging
 import re
 from typing import Any, List
 from hikari import Embed, File, Guild, Member, Color
@@ -39,6 +40,7 @@ from shiki.utils import db
 import shiki
 SETTINGS_PATH = './settings/%s.json'
 DATA_PATH = './data/%s.json'
+_LOG = logging.getLogger('shiki.utils.tools')
 
 
 users = db.connect().get_database('shiki').get_collection('users')
@@ -126,6 +128,7 @@ def load_data(name: str, encoding='utf8') -> dict | list | None:
     if os.path.isfile(name + '.json'):
         with open(name + '.json', 'r', encoding=encoding) as f:
             return json.load(f)
+    _LOG.warning("Can't load file %s: file doesn't exists" % name)
 
 
 def update_data(name: str, data: dict | list, encoding='utf8') -> None:
@@ -133,6 +136,7 @@ def update_data(name: str, data: dict | list, encoding='utf8') -> None:
     if os.path.isfile(name + '.json'):
         with open(name + '.json', 'w', encoding=encoding) as f:
             return json.dump(data, f)
+    _LOG.warning("Can't update file %s: file doesn't exists" % name)
 
 
 def get(iter, **kwargs) -> Any:
