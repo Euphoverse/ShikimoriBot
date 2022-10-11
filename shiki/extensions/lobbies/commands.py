@@ -73,7 +73,7 @@ async def lobby(ctx: lightbulb.SlashContext):
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def create(ctx: lightbulb.SlashContext):
     data = db.find_document(users, {'_id': ctx.user.id})
-    if len(data['lobbies']) <= 2:
+    if len(data['lobbies']) < 2:
         channel = await plugin.bot.rest.create_guild_voice_channel(
             ctx.guild_id,
             str(ctx.user),
@@ -153,7 +153,7 @@ async def owner_check(ctx: lightbulb.SlashContext):
 @lobby.child
 @lightbulb.command(
     'control',
-    'Создать новое лобби',
+    'Управление лобби',
     ephemeral=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
@@ -194,8 +194,8 @@ async def add(ctx: lightbulb.SlashContext):
             color=shiki.Colors.ERROR
         ))
         return
-
-    await plugin.bot.rest.edit_permission_overwrites(
+    
+    await plugin.bot.rest.edit_permission_overwrite(
         ctx.channel_id,
         ctx.options.user,
         allow=hikari.Permissions.VIEW_CHANNEL
@@ -205,6 +205,16 @@ async def add(ctx: lightbulb.SlashContext):
         description='Теперь пользователь сможет присоединиться к вам в голосовой канал',
         color=shiki.Colors.SUCCESS
     ))
+
+    perms = ctx.get_channel().permission_overwrites
+    added_users = len([
+        0 for u in perms
+        if perms[u].allow.all(hikari.Permissions.VIEW_CHANNEL)
+    ]) - 1
+    if added_users == 1:
+        await tools.grant_achievement(ctx.user, '47')
+    if added_users == 10:
+        await tools.grant_achievement(ctx.user, '48')
 
 
 @lobby.child
@@ -231,7 +241,7 @@ async def remove(ctx: lightbulb.SlashContext):
         ))
         return
 
-    await plugin.bot.rest.edit_permission_overwrites(
+    await plugin.bot.rest.edit_permission_overwrite(
         ctx.channel_id,
         ctx.options.user,
         deny=hikari.Permissions.VIEW_CHANNEL

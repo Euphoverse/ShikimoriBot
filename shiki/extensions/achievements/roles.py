@@ -54,6 +54,12 @@ async def update(ctx: hikari.MemberUpdateEvent):
     color_roles = cfg[cfg['mode']]['roles']['colors']
     if added_role in color_roles:
         await tools.grant_achievement(ctx.user, '42')
+    
+    # Game roles
+    game_roles = cfg[cfg['mode']]['roles']['games']
+    user_game_roles = set(new_roles) & set(game_roles)
+    if len(user_game_roles) > 15:
+        await tools.grant_achievement(ctx.user, '46')
 
 
 def load(bot):

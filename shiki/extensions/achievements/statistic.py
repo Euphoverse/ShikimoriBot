@@ -26,7 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from datetime import datetime, timedelta
+import asyncio
+from datetime import datetime, timedelta, timezone
 import time
 import lightbulb
 import hikari
@@ -71,6 +72,10 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
             if s in ctx.content:
                 await tools.grant_achievement(user, '2')
                 break
+
+    time_since_join = datetime.now(tz=timezone.utc) - ctx.member.joined_at
+    if time_since_join.days >= 3:
+        asyncio.create_task(tools.grant_achievement(user, '49'))
 
     db.update_document(stats, {'_id': user.id}, data)
 
@@ -127,6 +132,10 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     
     if state.is_streaming == True:
         await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
+    
+    if event.old_state != None and event.old_state.is_suppressed == True and state.is_suppressed == False:
+        await tools.grant_achievement(event.state.user_id, '45', plugin.bot.rest)
+    
 
 
 
