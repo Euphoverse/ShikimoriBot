@@ -122,7 +122,7 @@
     "29": {
         "title": "Забанен",
         "description": "Пинганите админа и получите за это мьют",
-        "attributes": ["force"]
+        "attributes": ["force", "hidden"]
     },
     "30": {
         "title": "Я получил власть которая и не снилась моему отцу",
@@ -132,7 +132,7 @@
     "31": {
         "title": "О да папочка, жёстче!",
         "description": "Получите демоут от JustLian-(а)",
-        "attributes": ["force"]
+        "attributes": ["force", "hidden"]
     },
     "32": {
         "title": "Миротворец",
