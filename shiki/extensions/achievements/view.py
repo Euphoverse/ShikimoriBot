@@ -81,7 +81,7 @@ async def view_achievemnts(ctx: lightbulb.SlashContext) -> None:
         pref = "⚫"
         title = ac['title']
         desc = f'- {ac["description"]}'
-        if len(output_field) > 950:
+        if len(output_field) + len(title) + len(desc) + 3 > 1024:
             output_fields.append(output_field)
             output_field = ''
         if index in aches:
@@ -95,6 +95,8 @@ async def view_achievemnts(ctx: lightbulb.SlashContext) -> None:
             if 'attributes' in ac and 'hidden' in ac['attributes']: continue
             if ctx.options.type == "Не полученные":
                 output_field += f'{pref}{title} {desc}\n'
+    if output_field == '':
+        output_field = "Достижений нет"
     output_fields.append(output_field)
     for index in range(len(output_fields)):
         title = 'Продолжение'

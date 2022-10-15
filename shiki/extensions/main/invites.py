@@ -78,12 +78,6 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
             await update_invites(inviter, ctx)
             return
     fetching_invites = False
-    if ctx.get_guild().member_count() == 100:
-        await tools.grant_achievement(ctx.user, '10')
-    if ctx.get_guild().member_count() == 200:
-        await tools.grant_achievement(ctx.user, '11')
-    if ctx.get_guild().member_count() == 300:
-        await tools.grant_achievement(ctx.user, '12')
 
 
 
