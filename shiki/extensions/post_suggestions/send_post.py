@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
 import lightbulb
 import hikari
 from shiki.utils import db, tools
@@ -49,14 +50,16 @@ async def on_reaction(event: hikari.ReactionAddEvent):
 
     mg = await plugin.bot.rest.fetch_message(event.channel_id, event.message_id)
     if event.is_for_emoji('🟩'):
+        author_id = hikari.Snowflake(mg.content.split('\n')[3].split(' ')[2])
         await plugin.bot.rest.create_message(
             post['post'][cfg['mode']],
             '`🖌️ %s`\n`👤 Модератор: %s`\n%s' % (
                 mg.content.split('\n')[2],
                 plugin.bot.cache.get_member(mg.content.split('\n')[0], event.user_id),
-                '\n'.join(mg.content.split('\n')[3:])
+                '\n'.join(mg.content.split('\n')[4:])
             )
         )
+        await tools.grant_achievement(author_id, '50', plugin.bot.rest)
         
 
 def load(bot):

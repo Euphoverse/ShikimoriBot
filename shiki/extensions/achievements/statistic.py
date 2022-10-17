@@ -132,6 +132,9 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     
     if state.is_streaming == True:
         await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
+
+    if state.is_video_enabled == True:
+        await tools.grant_achievement(event.state.user_id, '10', plugin.bot.rest)
     
     if event.old_state != None and event.old_state.is_suppressed == True and state.is_suppressed == False:
         await tools.grant_achievement(event.state.user_id, '45', plugin.bot.rest)

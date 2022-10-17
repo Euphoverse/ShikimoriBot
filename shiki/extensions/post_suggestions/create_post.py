@@ -79,10 +79,10 @@ async def on_message(event: hikari.MessageCreateEvent):
 
         nmg = await plugin.bot.rest.create_message(
             post['review'][cfg['mode']],
-            '%s\nНовый пост в предложке <#%s>\nАвтор: %s\n%s' % (
+            '%s\nНовый пост в предложке <#%s>\nАвтор: %s\nID Автора: %s\n%s' % (
                 mg.guild_id,
                 post['post'][cfg['mode']],
-                event.author,
+                event.author, event.author_id,
                 '\n'.join(result)
             )
         )

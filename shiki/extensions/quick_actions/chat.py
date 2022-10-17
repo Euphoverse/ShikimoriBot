@@ -41,6 +41,7 @@ plugin = lightbulb.Plugin("QuickChat")
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    if ctx.guild_id != cfg[cfg['mode']]['guild']: return
     if ctx.author.is_bot: return
     if ctx.content == None: return
     raw_content = ctx.content.lower()
