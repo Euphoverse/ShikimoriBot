@@ -61,7 +61,7 @@ _auth_key = os.environ['qiwi_auth_key']
 @lightbulb.implements(lightbulb.SlashCommand)
 async def donate(ctx: lightbulb.SlashContext):
     async with AioQiwiP2P(auth_key=_auth_key) as p2p:
-        bill = await p2p.bill(amount=ctx.options.amount, comment='Пожертвование от %s (Shikimori 2.0)' % str(ctx.user), lifetime=10)
+        bill = await p2p.bill(amount=ctx.options.amount, comment='Пожертвование от %s (Shikimori 2.0)' % str(ctx.user), lifetime=5)
         await ctx.respond(embed=hikari.Embed(
             title='Пожертвовать %s рублей' % ctx.options.amount,
             description='Нажмите на надпись выше чтобы оплатить счёт! Каждая копейка нам очень поможет!',
@@ -78,15 +78,31 @@ async def donate(ctx: lightbulb.SlashContext):
             if u.status == 'PAID':
                 await ctx.respond(embed=hikari.Embed(
                     title='Спасибо большое ♡',
-                    description='Пожертвование на %s рублей зачитано!' % ctx.options.amount,
+                    description='Пожертвование в %s рублей засчитано!' % ctx.options.amount,
                     color=shiki.Colors.SPONSOR
                 ).set_author(name=str(ctx.user), icon=ctx.user.display_avatar_url.url))
                 donated = db.find_document(users, {'_id': ctx.user.id})['donated'] + ctx.options.amount
                 db.update_document(users, {'_id': ctx.user.id}, {'donated': donated})
-                # await plugin.bot.rest.create_message(
-                #     cfg[cfg['mode']]['channels']['actions'],
-
-                # )
+                await plugin.bot.rest.create_message(
+                    cfg[cfg['mode']]['channels']['log'],
+                    embed=hikari.Embed(
+                        title='Пожертвование от %s' % ctx.author,
+                        description='%s, спасибо большое за пожертвование в ***%s*** рублей ❤️❤️ В сумме этот пользователю пожертвовал нам ***%s*** рублей!' % (
+                            ctx.author.mention, ctx.options.amount, donated
+                        ),
+                        color=shiki.Colors.SPONSOR
+                    ).set_footer(str(ctx.author), icon=ctx.author.display_avatar_url.url)
+                )
+                if donated >= 5:
+                    try:
+                        await plugin.bot.rest.add_role_to_member(
+                            ctx.guild_id,
+                            ctx.author.id,
+                            cfg[cfg['mode']]['roles']['donator']
+                        )
+                    except hikari.ForbiddenError:
+                        # Raises only if ctx.author is server owner
+                        pass
                 return
 
             if u.status in ['REJECTED', 'EXPIRED']:
