@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import lightbulb
+from lightbulb.ext import tasks
 from shiki.utils import tools
 import hikari
 import lightbulb
@@ -57,5 +58,6 @@ def run() -> None:
         import uvloop
 
         uvloop.install()
+    tasks.load(bot)
     miru.load(bot)
     bot.run(activity=hikari.Activity(name='github: JustLian/ShikimoriBot'))
