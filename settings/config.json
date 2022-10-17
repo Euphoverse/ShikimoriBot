@@ -30,7 +30,8 @@
         "channels": {
             "general": 982833157952897076,
             "mods_only": 1011596265475280919,
-            "announcements": 1015462275529846835
+            "announcements": 1015462275529846835,
+            "actions": 1011596265475280927
         },
         "roles": {
             "events_manager": 1011596264917454865,

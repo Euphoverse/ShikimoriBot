@@ -27,10 +27,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pymongo.mongo_client import MongoClient
+import dotenv
+import os
+
+dotenv.load_dotenv()
+_host = os.environ['mongo_host']
+_username = os.environ['mongo_username']
+_password = os.environ['mongo_password']
 
 
 def connect():
-    return MongoClient('127.0.0.1', 27017)
+    return MongoClient(_host, 27017, username=_username, password=_password)
 
 
 def insert_document(collection, data):

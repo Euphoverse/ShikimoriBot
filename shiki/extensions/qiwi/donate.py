@@ -76,15 +76,17 @@ async def donate(ctx: lightbulb.SlashContext):
                 continue
 
             if u.status == 'PAID':
-                await ctx.edit_last_response(embed=hikari.Embed(
+                await ctx.respond(embed=hikari.Embed(
                     title='Спасибо большое ♡',
-                    description='Пожертвование на %s рублей зачитано!' % int(
-                        bill.amount),
+                    description='Пожертвование на %s рублей зачитано!' % ctx.options.amount,
                     color=shiki.Colors.SPONSOR
-                ))
-                db.update_document(users, {'_id': ctx.user.id},
-                                   {'donated': db.
-                                    find_document({'_id': ctx.user.id})['donated'] + int(bill.amount)})
+                ).set_author(name=str(ctx.user), icon=ctx.user.display_avatar_url.url))
+                donated = db.find_document(users, {'_id': ctx.user.id})['donated'] + ctx.options.amount
+                db.update_document(users, {'_id': ctx.user.id}, {'donated': donated})
+                # await plugin.bot.rest.create_message(
+                #     cfg[cfg['mode']]['channels']['actions'],
+
+                # )
                 return
 
             if u.status in ['REJECTED', 'EXPIRED']:
