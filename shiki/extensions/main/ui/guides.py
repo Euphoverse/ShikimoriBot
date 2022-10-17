@@ -5,6 +5,39 @@ import shiki
 from shiki.utils import tools
 
 
+cfg = tools.load_data('./settings/config')
+
+
+async def role_handler(self, select: miru.Select, ctx: miru.ViewContext):
+    r = int(select.values[0])
+    if r not in ctx.member.role_ids:
+        await ctx.bot.rest.add_role_to_member(
+            ctx.guild_id,
+            ctx.user.id,
+            r
+        )
+        await ctx.respond(
+            flags=hikari.MessageFlag.EPHEMERAL,
+            embed=hikari.Embed(
+                title='Роль выдана!',
+                color=shiki.Colors.SUCCESS
+            )
+        )
+        return
+    await ctx.bot.rest.remove_role_from_member(
+        ctx.guild_id,
+        ctx.user.id,
+        r
+    )
+    await ctx.respond(
+        flags=hikari.MessageFlag.EPHEMERAL,
+        embed=hikari.Embed(
+            title='Роль убрана!',
+            color=shiki.Colors.ERROR
+        )
+    )
+
+
 async def select_handler(self, select: miru.Select, ctx: miru.ViewContext):
     if select.values[0] == 'deselect':
         await ctx.respond('🚫 Выделение убрано', flags=hikari.MessageFlag.EPHEMERAL, delete_after=3)
@@ -27,6 +60,10 @@ async def select_handler(self, select: miru.Select, ctx: miru.ViewContext):
         sp = SubPage(child)
         m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=sp.build())
         await sp.start(m)
+    elif child['type'] == 'roles':
+        rp = Roles(child)
+        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=rp.build())
+        await rp.start(m)
 
 
 class RootPage(miru.View):
@@ -61,6 +98,28 @@ class SubPage(miru.View):
     @miru.select(placeholder="Выберите раздел", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Гайды подгружаются. Пожалуйста подождите...', '🕐')])
     async def topic_select(self, select: miru.Select, ctx: miru.ViewContext):
         await select_handler(self, select, ctx)
+
+    async def on_timeout(self) -> None:
+        try:
+            await self.message.delete()
+        except hikari.NotFoundError:
+            pass
+
+
+class Roles(miru.View):
+    def __init__(self, data: dict) -> None:
+        super().__init__(timeout=600)
+        self.data = data
+        self.children[0].options = [
+            miru.SelectOption(
+                r['name'],
+                r['id'][cfg['mode']]
+            ) for r in self.data['roles']
+        ]
+    
+    @miru.select(placeholder="Выберите роль", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Роли подгружаются. Пожалуйста подождите...', '🕐')])
+    async def topic_select(self, select: miru.Select, ctx: miru.ViewContext):
+        await role_handler(self, select, ctx)
 
     async def on_timeout(self) -> None:
         try:
