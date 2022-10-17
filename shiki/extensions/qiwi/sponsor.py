@@ -85,6 +85,7 @@ async def sponsor(ctx: lightbulb.SlashContext):
                 continue
 
             if u.status == 'PAID':
+                asyncio.create_task(tools.grant_achievement(ctx.user, '12'))
                 await ctx.respond(embed=hikari.Embed(
                         title='Спасибо большое ♡',
                         description='Ваша спонсорская подписка продлена на %s!' % text,
