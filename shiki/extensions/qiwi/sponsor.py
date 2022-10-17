@@ -85,19 +85,13 @@ async def sponsor(ctx: lightbulb.SlashContext):
                 continue
 
             if u.status == 'PAID':
+                asyncio.create_task(tools.grant_achievement(ctx.user, '12'))
                 await ctx.respond(embed=hikari.Embed(
                         title='Спасибо большое ♡',
                         description='Ваша спонсорская подписка продлена на %s!' % text,
                         color=shiki.Colors.SPONSOR
                 ).set_author(name=str(ctx.user), icon=ctx.user.display_avatar_url.url))
-                sponsor = db.find_document(users, {'_id': ctx.author.id})['sponsor']
-
-                if sponsor['started'] is None:
-                    sponsor['started'] = datetime.now()
-                    sponsor['duration'] = days
-                else:
-                    sponsor['duration'] += days
-                db.update_document(users, {'_id': ctx.author.id}, {'sponsor': sponsor})
+                asyncio.create_task(await tools.sponsor_extension(ctx.author, days))
                 await plugin.bot.rest.create_message(
                     cfg[cfg['mode']]['channels']['log'],
                     embed=hikari.Embed(
@@ -108,15 +102,6 @@ async def sponsor(ctx: lightbulb.SlashContext):
                         color=shiki.Colors.SPONSOR
                     ).set_footer(str(ctx.author), icon=ctx.author.display_avatar_url.url)
                 )
-                try:
-                    await plugin.bot.rest.add_role_to_member(
-                        ctx.guild_id,
-                        ctx.author.id,
-                        cfg[cfg['mode']]['roles']['sponsor']
-                    )
-                except hikari.ForbiddenError:
-                    # Raises only if ctx.author is server owner
-                    pass
 
                 return
 
@@ -150,12 +135,21 @@ async def sponsor_check():
                 u['_id']
             )
             try:
+                await plugin.bot.rest.remove_role_from_member(
+                    cfg[cfg['mode']]['guild'],
+                    u['_id'],
+                    cfg[cfg['mode']]['roles']['sponsor']
+                )
+            except hikari.ForbiddenError:
+                # Raises only if user is server owner
+                pass
+            try:
                 await dm.send(
                     embed=hikari.Embed(
                         title='Ваша спонсорская подписка кончилась',
                         description='Вы можете вернуть подписку командой /sponsor на [нашем сервере](https://join.euphoverse.ru). '
                                     'Если вы хотели отказаться от подписке, то пожалуйста расскажите нам почему вы решили это сделать'
-                                    ' в этой форме: [нажмите](https://docs.google.com/forms/d/e/1FAIpQLSe5jAoQwX5ZTfAGaoVAd1RQvEsRj6xWiLz4rlINJS2G2rTepA/viewform?usp=pp_url&entry.1800267171={0}%23{1})'.fromat(
+                                    ' в этой форме: [нажмите](https://docs.google.com/forms/d/e/1FAIpQLSe5jAoQwX5ZTfAGaoVAd1RQvEsRj6xWiLz4rlINJS2G2rTepA/viewform?usp=pp_url&entry.1800267171={0}%23{1})'.format(
                                         dm.recipient.username,
                                         dm.recipient.discriminator
                                     ),
@@ -186,14 +180,15 @@ async def sponsor_check():
                 _LOG.warning('user %s (%s) disabled dms from server members' % (dm.recipient, u['_id']))
                 await plugin.bot.rest.create_message(
                     cfg[cfg['mode']]['channels']['actions'],
-                    embed=hikari.Embed(
+                    f'{dm.recipient.mention}', embed=hikari.Embed(
                         title='Спонсорская подписка %s' % dm.recipient,
                         description='%s ваша спонсоркая подписка кончится через %s!' % (
                             dm.recipient.mention,
                             'неделю' if d == 7 else '2 дня'
                         ),
                         color=shiki.Colors.ERROR
-                    )
+                    ),
+                    user_mentions=True
                 )
 
 

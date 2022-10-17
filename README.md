@@ -24,10 +24,10 @@ python -m pip install -r requirements.txt
 **Создание .env файла**
 
 ```
-prod-token:"Токен основного бота"
-test-token:"Токен тестового бота"
+prod-token="Токен основного бота"
+test-token="Токен тестового бота"
 
-qiwi_auth_key:"Секретный ключ QIWI P2P"
+qiwi_auth_key="Секретный ключ QIWI P2P"
 
 mongo_host="IP MongoDB"
 mongo_usename="Имя пользователя MongoDB"

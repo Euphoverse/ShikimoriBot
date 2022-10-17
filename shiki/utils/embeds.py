@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import asyncio
+from datetime import timedelta
 from hikari import Embed, User
 from shiki.utils import db, tools
 import shiki
@@ -50,14 +51,14 @@ def profile(user: User, author: User):
         asyncio.create_task(tools.grant_achievement(user, '19'))
     em = Embed(
         title=f'Профиль пользователя {user.username}',
-        color=shiki.Colors.SUCCESS if data['sponsor'] is None else shiki.Colors.SPONSOR
+        color=shiki.Colors.SUCCESS if data['sponsor']['duration'] is None else shiki.Colors.SPONSOR
     )
     em.set_footer(text=f'Запросил {author.username}',
                 icon=author.display_avatar_url.url)
     em.set_thumbnail(user.display_avatar_url.url)
 
     em.add_field(
-        'Спонсорка', '```Отсутствует```' if data['sponsor'] is None else '```Активна с ' + data['sponsor'] + '```')
+        'Спонсорка', '```Отсутствует```' if data['sponsor']['duration'] is None else '```Активна до ' + (data['sponsor']['started'] + timedelta(data['sponsor']['duration'])).strftime('%d.%m.%Y') + '```')
     em.add_field('Всего пожертвовано', f"```{data['donated']} рублей```", inline=True)
     em.add_field('Уровень', f"```{data['level']}```", inline=True)
     em.add_field('Опыт', '```%s/%s```' %

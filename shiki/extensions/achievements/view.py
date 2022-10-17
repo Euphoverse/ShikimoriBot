@@ -26,8 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import asyncio
-import random
 import lightbulb
 import hikari
 from shiki.utils import db, tools, embeds
@@ -75,26 +73,30 @@ async def view_achievemnts(ctx: lightbulb.SlashContext) -> None:
         title=f'Достижения {user.username}',
         color=shiki.Colors.ACHIEVEMENT
     )
+
     output_fields = []
     output_field = ''
     for index, ac in achievements.items():
         pref = "⚫"
         title = ac['title']
         desc = f'- {ac["description"]}'
-        if len(output_field) + len(title) + len(desc) + 3 > 1024:
-            output_fields.append(output_field)
-            output_field = ''
+        add_field = ''
         if index in aches:
             pref = "🟢"
             if 'attributes' in ac and 'hidden' in ac['attributes']:
                 pref = "🟡"
                 desc = ''
             if ctx.options.type == "Полученные":
-                output_field += f'{pref}{title} {desc}\n'
+                add_field = f'{pref}{title} {desc}\n'
         else:
             if 'attributes' in ac and 'hidden' in ac['attributes']: continue
             if ctx.options.type == "Не полученные":
-                output_field += f'{pref}{title} {desc}\n'
+                add_field = f'{pref}{title} {desc}\n'
+        if len(output_field) + len(add_field) > 1024:
+            output_fields.append(output_field)
+            output_field = ''
+        output_field += add_field
+        
     if output_field == '':
         output_field = "Достижений нет"
     output_fields.append(output_field)

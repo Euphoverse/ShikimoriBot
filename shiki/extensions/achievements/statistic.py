@@ -84,7 +84,8 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
 async def state_update(event: hikari.VoiceStateUpdateEvent):
     if event.state.guild_id != cfg[cfg['mode']]['guild']:
         return
-    await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
+    if event.state.channel_id is not None:
+        await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
 
     state = event.state
     if state.user_id not in vc_tmp:

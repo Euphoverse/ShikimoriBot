@@ -76,6 +76,7 @@ async def donate(ctx: lightbulb.SlashContext):
                 continue
 
             if u.status == 'PAID':
+                asyncio.create_task(tools.grant_achievement(ctx.user, '11'))
                 await ctx.respond(embed=hikari.Embed(
                     title='Спасибо большое ♡',
                     description='Пожертвование в %s рублей засчитано!' % ctx.options.amount,

@@ -119,6 +119,7 @@ async def update_invites(inviter, ctx):
         data2['invites_claimed'] = data['invites']
         if data['invites'] % 5 == 0:
             data['money'] += 50 * data['invites']
+            asyncio.create_task(tools.sponsor_extension(inviter, 5))
         await tools.add_xp(inviter, 10)
         db.update_document(stats, {'_id': inviter.id}, data2)
     db.update_document(users, {'_id': ctx.user_id}, {'invited_by': inviter.id})
