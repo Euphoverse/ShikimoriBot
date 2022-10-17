@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import asyncio
+from datetime import datetime
 import json
 import logging
 import re
@@ -228,6 +230,34 @@ def fetch_content(content):
 achievements = load_data('./settings/achievements')
 
 
+async def sponsor_extension(user: hikari.User | hikari.Snowflake, days, rest: hikari.api.RESTClient = None):
+    if isinstance(user, hikari.Snowflake):
+        assert rest is not None, 'user is snowflake but rest is None'
+        user = await rest.fetch_user(user)
+    sponsor = db.find_document(users, {'_id': user.id})['sponsor']
+
+    if sponsor == None:
+        return False
+
+    if sponsor['started'] is None:
+        sponsor['started'] = datetime.now()
+        sponsor['duration'] = days
+    else:
+        sponsor['duration'] += days
+    db.update_document(users, {'_id': user.id}, {'sponsor': sponsor})
+    try:
+        await user.app.rest.add_role_to_member(
+            cfg[cfg['mode']]['guild'],
+            user.id,
+            cfg[cfg['mode']]['roles']['sponsor']
+        )
+    except hikari.ForbiddenError:
+        # Raises only if ctx.author is server owner
+        pass
+
+    return True
+
+
 async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, rest: hikari.api.RESTClient = None):
     data = db.find_document(users, {'_id': user.id if isinstance(user, hikari.User) else user})
     if data == None or data['achievements'] == None: return False
@@ -240,16 +270,32 @@ async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, r
         achs = data['achievements']
         achs.append(achievement)
         db.update_document(users, {'_id': user.id}, {'achievements': achs})
-        await add_xp(user, 10)
-        achievement_title = achievements[achievement]['title']
-        achievement_desc = achievements[achievement]['description']
+        _ach = achievements[achievement]
+        if 'rewards' in _ach:
+            if 'xp' in _ach['rewards']:
+                asyncio.create_task(add_xp(user, _ach['rewards']['xp']))
+            if 'money' in _ach['rewards']:
+                balance = data['money'] + _ach['rewards']['money']
+                db.update_document(users, {'_id': user.id}, {"money": balance})
+            if 'sponsorship' in _ach['rewards']:
+                asyncio.create_task(sponsor_extension(user, _ach['rewards']['sponsorship']))
+                asyncio.create_task(user.app.rest.create_message(
+                    cfg[cfg['mode']]['channels']['actions'],
+                    f'{user.mention}', embed=Embed(
+                        title=f'Подарочная спонсорская подписка!',
+                        description=f'Пользователь {user.username} получил {_ach["rewards"]["sponsorship"]}d подписки',
+                        color=shiki.Colors.SPONSOR
+                    ).set_footer(text=f'Спонсорка', icon=user.display_avatar_url.url),
+                    user_mentions=True))
+        achievement_title = _ach['title']
+        achievement_desc = _ach['description']
         await user.app.rest.create_message(
             cfg[cfg['mode']]['channels']['actions'],
             f'{user.mention}', embed=Embed(
                 title=f'{user.username} получил достижение',
                 description=f'Получено достижение ``{achievement_title} - {achievement_desc}``',
                 color=shiki.Colors.ACHIEVEMENT
-            ).set_footer(f''),
+            ).set_footer(text=f'Достижения', icon=user.display_avatar_url.url),
             user_mentions=True)
         return True
 
