@@ -88,7 +88,6 @@ async def on_message(event: hikari.MessageCreateEvent):
         )
 
         await nmg.add_reaction('🟩')
-        await nmg.add_reaction('🟥')
 
 
 def load(bot):
