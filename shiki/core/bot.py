@@ -34,16 +34,19 @@ import lightbulb
 import dotenv
 import os
 import logging
+import miru
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
+_LOG = logging.getLogger('core.bot')
 
 dotenv.load_dotenv()
 bot = lightbulb.BotApp(
     os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'],
-    intents=hikari.Intents.ALL)
+    intents=hikari.Intents.ALL,
+    default_enabled_guilds=cfg[cfg['mode']]['guild'])
 if cfg['mode'] == 'test':
-    logging.warning('Bot is running in test mode!')
+    _LOG.warning('Bot is running in test mode!')
 
 for folder in os.listdir('./shiki/extensions'):
     for plugin in filter(lambda x: x.endswith('.py'), os.listdir('./shiki/extensions/%s' % folder)):
@@ -55,6 +58,6 @@ def run() -> None:
         import uvloop
 
         uvloop.install()
-
     tasks.load(bot)
+    miru.load(bot)
     bot.run(activity=hikari.Activity(name='github: JustLian/ShikimoriBot'))

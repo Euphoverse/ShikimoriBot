@@ -26,50 +26,41 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 import asyncio
-import logging
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+posts = tools.load_data('./settings/post_suggestions')
+plugin = lightbulb.Plugin("PostSuggestionsCreatePost")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
+@plugin.listener(hikari.ReactionAddEvent)
+async def on_reaction(event: hikari.ReactionAddEvent):
+    if event.user_id == plugin.bot.get_me().id:
         return
-    voice = event.state
+    for s in posts.values():
+        if s["review"][cfg["mode"]] == event.channel_id:
+            post = s
+            break
+    else: # Runs if loop wasn't breaked
+        return
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
-
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
-
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
-
+    mg = await plugin.bot.rest.fetch_message(event.channel_id, event.message_id)
+    if event.is_for_emoji('🟩'):
+        author_id = hikari.Snowflake(mg.content.split('\n')[3].split(' ')[2])
+        await plugin.bot.rest.create_message(
+            post['post'][cfg['mode']],
+            '`🖌️ %s`\n`👤 Модератор: %s`\n%s' % (
+                mg.content.split('\n')[2],
+                plugin.bot.cache.get_member(mg.content.split('\n')[0], event.user_id),
+                '\n'.join(mg.content.split('\n')[4:])
+            )
+        )
+        await tools.grant_achievement(author_id, '50', plugin.bot.rest)
+        
 
 def load(bot):
     bot.add_plugin(plugin)

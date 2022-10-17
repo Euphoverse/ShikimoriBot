@@ -26,49 +26,50 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-import asyncio
-import logging
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
+from .ui import embed
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+plugin = lightbulb.Plugin("MediaBroadcasts")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
+@plugin.command
+@lightbulb.command(
+    'media',
+    'Команды связанные с медиа',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashCommandGroup)
+async def media(ctx: lightbulb.SlashContext):
+    # Command group /media
+    pass
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
 
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
-
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+@media.child
+@lightbulb.option(
+    'channel',
+    'Канал в котором будет опубликовано сообщение',
+    hikari.TextableGuildChannel,
+    required=True
+)
+@lightbulb.command(
+    'new_embed',
+    'Создать новое embed-сообщение'
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def new_embed(ctx: lightbulb.SlashContext):
+    view = embed.EmbedConstructor(ctx.options.channel.id, timeout=600)
+    msg = await (await ctx.respond(
+        embed=hikari.Embed(
+            title='Нет заголовка'
+        ),
+        components=view
+    )).message()
+    await view.start(msg)
 
 
 def load(bot):

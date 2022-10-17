@@ -39,7 +39,7 @@ import aiohttp
 msk = zoneinfo.ZoneInfo('Europe/Moscow')
 local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
 plugin = lightbulb.Plugin("EventsCommands")
 
@@ -184,7 +184,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
     )
 
     # Saving data to DB
-    events_data = tools.load_data('events')
+    events_data = tools.load_data('./data/events')
     events_data[str(event.id)] = {
         'title': title,
         'description': desc,
@@ -197,7 +197,7 @@ async def create(ctx: lightbulb.SlashContext) -> None:
         'link': event_link,
         'started': False
     }
-    tools.update_data('events', events_data)
+    tools.update_data('./data/events', events_data)
 
     embed = hikari.Embed(
         title='Ивент создан',
@@ -218,7 +218,7 @@ async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.Scheduled
                 image_url = None
             else:
                 image_url = (await resp.json())['url']
-    link = tools.load_data('events')[str(event.id)]['link']
+    link = tools.load_data('./data/events')[str(event.id)]['link']
     date = event.start_time.astimezone(msk)
     embed = hikari.Embed(
         title='Ивент %s' % event.name,
@@ -263,7 +263,8 @@ async def announce_callback(ctx: lightbulb.SlashContext, event: hikari.Scheduled
 @lightbulb.command(
     'announce',
     'Создать объявление о запланированном ивенте',
-    inherit_checks=True
+    inherit_checks=True,
+    ephemeral=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def announce(ctx: lightbulb.SlashContext):

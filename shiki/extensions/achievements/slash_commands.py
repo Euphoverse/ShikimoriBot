@@ -26,49 +26,40 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 import asyncio
-import logging
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
+achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+stats = db.connect().get_database('shiki').get_collection('stats')
+plugin = lightbulb.Plugin("AchieveSlashcommands")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def update(ctx: hikari.GuildMessageCreateEvent):
+    # '/like' command listener ( DSMonitoring )
+    if ctx.author_id == 575776004233232386 and\
+       ctx.message.interaction != None and\
+       ctx.message.interaction.name == 'like':
+        await tools.grant_achievement(ctx.message.interaction.user, '37')
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
-
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
-
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+    # '/play' command listener ( Hori )
+    if ctx.author_id == 1000700569507352636 and\
+       ctx.message.interaction != None and\
+       ctx.message.interaction.name == 'play':
+        user = ctx.message.interaction.user
+        data = db.find_document(stats, {'_id': user.id})
+        if data == None: return
+        data['play_uses'] += 1
+        if data['play_uses'] == 1:
+            await tools.grant_achievement(ctx.message.interaction.user, '38')
+        if data['play_uses'] == 150:
+            await tools.grant_achievement(ctx.message.interaction.user, '39')
+        db.update_document(stats, {'_id': user.id}, {'play_uses': data['play_uses']})
 
 
 def load(bot):

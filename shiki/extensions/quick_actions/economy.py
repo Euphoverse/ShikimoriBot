@@ -26,49 +26,37 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-import asyncio
-import logging
 import lightbulb
 import hikari
-from shiki.utils import db, tools
-import shiki
+from shiki.utils import db, tools, embeds
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+plugin = lightbulb.Plugin("QuickEconomy")
+emoji_denied = cfg['emojis']['access_denied']
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
-
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
-
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
-
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    if ctx.author.is_bot: return
+    if ctx.content == None: return
+    raw_content = ctx.content.lower()
+    if not raw_content.startswith('шики'): return
+    content = tools.fetch_content(raw_content)
+    
+    reference_user = ctx.message.message_reference
+    if reference_user != None:
+        reference_id = ctx.message.message_reference.id
+        reference_message = await ctx.get_channel().fetch_message(reference_id)
+        reference_user = reference_message.author
+    
+    if content == 'profile':
+        if reference_user == None:
+            user = ctx.author
+        else:
+            user = reference_user
+        await ctx.message.respond(embed=embeds.profile(user, ctx.author))
 
 
 def load(bot):

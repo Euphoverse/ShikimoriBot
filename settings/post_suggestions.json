@@ -1,0 +1,17 @@
+{
+    "memes": {
+        "type": "message",
+        "post": {
+            "test": 1025645361102065714,
+            "prod": 984387668953665587
+        },
+        "review": {
+            "test": 1026470414161031198,
+            "prod": 0
+        },
+
+        "content_types": ["image", "video", "link"],
+
+        "add_reactions": ["<:upvote:1029287282110365726>", "<:downvote:1029287328067375134>"]
+    }
+}

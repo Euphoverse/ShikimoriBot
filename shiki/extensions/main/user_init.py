@@ -32,9 +32,11 @@ import logging
 from shiki.utils import db, tools
 
 
-cfg = tools.load_file('config')
+cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
+stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("UserInit")
+_LOG = logging.getLogger('extensions.main.user_init')
 
 
 async def assign_mod(member: hikari.Member):
@@ -50,18 +52,32 @@ async def ready_listener(_):
             continue
         data = db.find_document(users, {'_id': member.id})
         if data is None:
-            logging.warning(
-                f'creating document of user {member.id} ({member})')
+            _LOG.warning(
+                f'creating user document of user {member.id} ({member})')
             db.insert_document(
                 users, {'_id': member.id, **cfg['db_defaults']['users']})
             await assign_mod(member)
         else:
             for key in cfg['db_defaults']['users'].keys():
                 if key not in data:
-                    logging.warning(
-                        'missing key "%s" in document of user %s (%s)' % (key, str(member), str(member.id)))
+                    _LOG.warning(
+                        'missing key "%s" in stats document of user %s (%s)' % (key, str(member), str(member.id)))
                     db.update_document(users, {'_id': member.id}, {
                                        key: cfg['db_defaults']['users'][key]})
+        data = db.find_document(stats, {'_id': member.id})
+        if data is None:
+            _LOG.warning(
+                f'creating stats document of user {member.id} ({member})')
+            db.insert_document(
+                stats, {'_id': member.id, **cfg['db_defaults']['stats']})
+            await assign_mod(member)
+        else:
+            for key in cfg['db_defaults']['stats'].keys():
+                if key not in data:
+                    _LOG.warning(
+                        'missing key "%s" in stats document of user %s (%s)' % (key, str(member), str(member.id)))
+                    db.update_document(stats, {'_id': member.id}, {
+                                       key: cfg['db_defaults']['stats'][key]})
 
 
 @plugin.listener(hikari.MemberCreateEvent)
@@ -72,8 +88,10 @@ async def member_join(event: hikari.MemberCreateEvent):
     if db.find_document(users, {'_id': event.member.id}) is None:
         db.insert_document(
             users, {'_id': event.member.id, **cfg['db_defaults']['users']})
+        db.insert_document(
+            stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
         await assign_mod(event.member)
-        await event.member.get_guild()\
+        return await event.member.get_guild()\
             .get_channel(cfg[cfg['mode']]['channels']['general'])\
             .send(f"Хей, %s! Добро пожаловать на наш сервер! Твоим модератором будет %s. Он(а) поможет тебе освоиться на сервере. Также по всем вопросам и за помощью обращайся только к этому модератору <3" % (
                 event.member.mention,
@@ -82,6 +100,7 @@ async def member_join(event: hikari.MemberCreateEvent):
                 .mention
             ))
     # Re-assigning moderator
+    await tools.grant_achievement(event.user, '4')
     await assign_mod(event.member)
     await event.member.get_guild()\
         .get_channel(cfg[cfg['mode']]['channels']['general'])\

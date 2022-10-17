@@ -21,6 +21,19 @@ cd ShikimoriBot
 python -m pip install -r requirements.txt
 ```
 
+**Создание .env файла**
+
+```
+prod-token:"Токен основного бота"
+test-token:"Токен тестового бота"
+
+qiwi_auth_key:"Секретный ключ QIWI P2P"
+
+mongo_host="IP MongoDB"
+mongo_usename="Имя пользователя MongoDB"
+mongo_password="Пароль пользователя MongoDB"
+```
+
 **Запуск бота**
 
 ```
@@ -30,7 +43,3 @@ python -m shiki
 ## Помощь с разработкой
 
 Создайте форк этого репозитория, загружайте туда свои изменения и создавайте PR.
-
-**База данных**
-
-Shikimori использует MongoDB для сохранения данных пользователей. Для работы бота не нужно меня настройки MongoDB

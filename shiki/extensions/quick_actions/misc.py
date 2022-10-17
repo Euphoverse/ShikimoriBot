@@ -26,49 +26,46 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-import asyncio
-import logging
+from datetime import datetime, timedelta, timezone
+import re
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
+import time
 
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+plugin = lightbulb.Plugin("QuickMisc")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
+@plugin.listener(hikari.GuildMessageCreateEvent)
+async def message_sent(ctx: hikari.GuildMessageCreateEvent):
+    if ctx.author.is_bot: return
+    if ctx.content == None: return
+    raw_content = ctx.content.lower()
+    if not raw_content.startswith('шики'): return
+    content = tools.fetch_content(raw_content)
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
+    if content == 'msk':
+        msk = datetime.now(tz=timezone.utc) + timedelta(hours=3)
+        return await ctx.message.respond(msk.strftime('%H:%M:%S'), reply=True)
+    
+    if content == 'snowflake':
+        search = re.search(r'\d+', ctx.content)
+        if search is None:
+            return await ctx.message.respond(
+                'Ты не указал сноуфлек <:4408ganyuinsane:1027509912609239040>',
+                reply=True
+            )
 
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
+        snowflake_id = int(search.group(0))
+        snowflake_date = hikari.Snowflake(snowflake_id).created_at
+        return await ctx.message.respond(f'<t:{round(time.mktime(snowflake_date.timetuple()))}>', reply=True)
 
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+    if content == 'help':
+        help_channel = cfg[cfg['mode']]['channels']['information']
+        return await ctx.message.respond(f'Список быстрых команд находится в канале <#{help_channel}> <a:4426ganyuspinfingers:1027509918783242270>')
 
 
 def load(bot):

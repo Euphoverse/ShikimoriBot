@@ -30,6 +30,7 @@ from pymongo.mongo_client import MongoClient
 import dotenv
 import os
 
+
 dotenv.load_dotenv()
 _host = os.environ['mongo_host']
 _username = os.environ['mongo_username']

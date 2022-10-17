@@ -26,49 +26,52 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 import asyncio
-import logging
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
+achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+stats = db.connect().get_database('shiki').get_collection('stats')
+plugin = lightbulb.Plugin("AchievePresence")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
+@plugin.listener(hikari.PresenceUpdateEvent)
+async def update(ctx: hikari.PresenceUpdateEvent):
+    if ctx.guild_id != cfg[cfg['mode']]['guild']: return
+    user = await ctx.fetch_user()
+    if user.is_bot: return
+    await activity_check(ctx.presence, user)
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
 
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
+@plugin.listener(hikari.ShardReadyEvent)
+async def ready(ctx: hikari.ShardReadyEvent):
+    members = await plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild'])
+    for m in members:
+        if m.is_bot: continue
+        asyncio.create_task(activity_check(m.get_presence(), m))
 
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
 
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+async def activity_check(presence, user):
+    if presence == None: return
+
+    if len(presence.activities) != 0: 
+        game = presence.activities[0].name
+        if game == "Dota 2":
+            asyncio.create_task(tools.grant_achievement(user, '20'))
+        if game == "osu!":
+            asyncio.create_task(tools.grant_achievement(user, '21'))
+        if game == "League of Legends":
+            asyncio.create_task(tools.grant_achievement(user, '22'))
+        if game == "Minecraft" or\
+           game == "Lunar Client" or\
+           game == "LabyMod":
+            asyncio.create_task(tools.grant_achievement(user, '23'))
+        if game == 'Escape from Tarkov':
+            asyncio.create_task(tools.grant_achievement(user, '26'))
 
 
 def load(bot):

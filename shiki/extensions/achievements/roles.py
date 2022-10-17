@@ -26,49 +26,40 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 import asyncio
-import logging
 import lightbulb
 import hikari
 from shiki.utils import db, tools
-import shiki
 
 
 cfg = tools.load_data('./settings/config')
+achievements = tools.load_data('./settings/achievements')
 users = db.connect().get_database('shiki').get_collection('users')
-plugin = lightbulb.Plugin("EventsMassActions")
+stats = db.connect().get_database('shiki').get_collection('stats')
+plugin = lightbulb.Plugin("AchieveRoles")
 
 
-@plugin.listener(hikari.VoiceStateUpdateEvent)
-async def member_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.member.id != plugin.bot.get_me().id:
-        return
-    voice = event.state
+@plugin.listener(hikari.MemberUpdateEvent)
+async def update(ctx: hikari.MemberUpdateEvent):
+    old_roles = ctx.old_member.role_ids
+    new_roles = ctx.member.role_ids
+    if len(new_roles) <= len(old_roles): return
+    added_role = [r for r in new_roles if r not in old_roles][0]
+    # Server boost role
+    if added_role == cfg[cfg['mode']]['roles']['boost']:
+        await tools.grant_achievement(ctx.user, '25')
+        await tools.add_xp(ctx.user, 200)
 
-    try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
-    except IndexError:
-        host = 0
-
-    guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
-
-    if voice.is_guild_muted:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(mute=False))
-
-    if voice.is_guild_deafened:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=True))
-    else:
-        for v in users:
-            asyncio.create_task(v.member.edit(deaf=False))
+    # Color roles
+    color_roles = cfg[cfg['mode']]['roles']['colors']
+    if added_role in color_roles:
+        await tools.grant_achievement(ctx.user, '42')
+    
+    # Game roles
+    game_roles = cfg[cfg['mode']]['roles']['games']
+    user_game_roles = set(new_roles) & set(game_roles)
+    if len(user_game_roles) > 15:
+        await tools.grant_achievement(ctx.user, '46')
 
 
 def load(bot):
