@@ -285,6 +285,49 @@ async def give_tag(ctx: lightbulb.SlashContext):
     ).set_footer(text='Теги', icon=ctx.author.display_avatar_url.url))
 
 
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.command(
+    'view',
+    'Узнать информацию о пользователе',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def get_info(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None:
+        user = ctx.author
+    if user.is_bot:
+        return await ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    data2 = db.find_document(stats, {'_id': user.id})
+    if data == None:
+        return await ctx.respond(embed=embeds.user_not_found())
+        
+    em = hikari.Embed(
+        title=f'Полная информация о {user.username}',
+        color=shiki.Colors.SUCCESS
+    ).set_footer(text='Информация', icon=ctx.author.display_avatar_url.url)
+    
+    _field1 = ''
+    for d in data:
+        _field1 += f"{d}: {data[d]}\n"
+    em.add_field('Пользователь', f'```{_field1}```')
+
+    _field2 = ''
+    for d in data2:
+        _field2 += f"{d}: {data2[d]}\n"
+    em.add_field('Статистика', f'```{_field2}```')
+
+    await ctx.respond(embed=em)
+
+
 def load(bot):
     bot.add_plugin(plugin)
 
