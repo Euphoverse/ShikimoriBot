@@ -68,6 +68,7 @@ def profile(user: User, author: User):
 
     return em
 
+
 def user_not_found():
     return Embed(
         title='Ошибка',
@@ -75,9 +76,26 @@ def user_not_found():
         color=shiki.Colors.ERROR
     ).set_footer(text=f'{emoji_denied} Пользователь не найден')
 
+
 def user_is_bot():
     return Embed(
         title='Ошибка',
         description='К ботам не применимы команды!',
         color=shiki.Colors.ERROR
     ).set_footer(text=f'{emoji_denied} Некорректные данные')
+
+
+def user_has_tag():
+    return Embed(
+        title='Ошибка',
+        description='Тег уже имеется у пользователя',
+        color=shiki.Colors.ERROR
+    ).set_footer(text=f'{emoji_denied} Теги')
+
+
+def user_has_no_tag():
+    return Embed(
+        title='Ошибка',
+        description='Тег отсутствует у пользователя',
+        color=shiki.Colors.ERROR
+    ).set_footer(text=f'{emoji_denied} Теги')

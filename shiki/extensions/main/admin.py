@@ -29,12 +29,13 @@
 import asyncio
 import lightbulb
 import hikari
-from shiki.utils import db, tools
+from shiki.utils import db, tools, embeds
 import shiki
 
 
 cfg = tools.load_data('./settings/config')
 achievements = tools.load_data('./settings/achievements')
+tags = tools.load_data('./settings/tags')
 users = db.connect().get_database('shiki').get_collection('users')
 stats = db.connect().get_database('shiki').get_collection('stats')
 plugin = lightbulb.Plugin("Admin")
@@ -221,6 +222,100 @@ async def give_achievement(ctx: lightbulb.SlashContext):
             description=f'Ачивка ``#{achievement} - {ctx.options.achievement}`` уже имеется у **{user}**',
             color=shiki.Colors.ERROR
         ).set_footer(text='Выдача ачивки', icon=ctx.author.display_avatar_url.url))
+
+
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'tag',
+    'Тег',
+    str,
+    required=True,
+    choices=tools.get_all_tags()
+)
+@lightbulb.option(
+    'action',
+    'Действие',
+    str,
+    required=True,
+    choices=['add', 'remove']
+)
+@lightbulb.command(
+    'tag',
+    'Оперирование тэгами',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def give_tag(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None:
+        user = ctx.author
+    if user.is_bot:
+        return await ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    if data == None:
+        return await ctx.respond(embed=embeds.user_not_found())
+    _tags = data['tags']
+    tag = tools.get_tag_from_value(ctx.options.tag)
+
+    if ctx.options.action == 'add':
+        if tag in _tags:
+            return await ctx.respond(embed=embeds.user_has_tag())
+        _tags.append(tag)
+        operation = 'добавлен'
+    
+    if ctx.options.action == 'remove':
+        if tag not in _tags:
+            return await ctx.respond(embed=embeds.user_has_no_tag())
+        _tags.remove(tag)
+        operation = 'удалён'
+
+    db.update_document(users, {'_id': user.id}, {'tags': _tags})
+    
+    await ctx.respond(embed=hikari.Embed(
+        title='Успешно',
+        description=f'Тег ``{tag}`` был успешно {operation} ({user.username})',
+        color=shiki.Colors.SUCCESS
+    ).set_footer(text='Теги', icon=ctx.author.display_avatar_url.url))
+
+
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.command(
+    'view',
+    'Узнать теги пользователя',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def view_tags(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None:
+        user = ctx.author
+    if user.is_bot:
+        return await ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    if data == None:
+        return await ctx.respond(embed=embeds.user_not_found())
+    
+    _tags = tools.get_tag_names(user.id)
+    if len(_tags) < 1: _tags = ['Тегов нет']
+    await ctx.respond(embed=hikari.Embed(
+        title=f'Теги пользователя {user.username}',
+        description=f'**{" **|** ".join(_tags)}**',
+        color=shiki.Colors.SUCCESS
+    ).set_footer(text='Теги', icon=ctx.author.display_avatar_url.url))
 
 
 def load(bot):

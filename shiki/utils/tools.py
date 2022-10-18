@@ -324,3 +324,31 @@ def get_achievement_id(title):
     for key, value in achievements.items():
         if value['title'] == title:
             return key
+
+
+tags = load_data('./settings/tags')
+
+
+def get_tag_names(user_id: hikari.User.id) -> List:
+    output = []
+    data = db.find_document(users, {'_id': user_id})
+    if data == None:
+        return 'user_not_found'
+    _tags = data['tags']
+    for tag in tags:
+        if tag in _tags:
+            output.append(tags[tag])
+    return output
+
+
+def get_all_tags() -> List:
+    output = []
+    for tag in tags:
+        output.append(tag)
+    return output
+
+
+def get_tag_from_value(tag_value: str):
+    for _tag in tags.keys():
+        if tags[_tag] == tag_value:
+            return _tag
