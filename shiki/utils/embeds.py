@@ -66,6 +66,10 @@ def profile(user: User, author: User):
     em.add_field('Баланс', f'```{data["money"]}{currency_emoji}```', inline=True)
     em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
 
+    _tags = tools.get_tag_names(user.id)
+    if len(_tags) < 1: _tags = ['Тегов нет']
+    em.add_field('Теги', f'**{" **|** ".join(_tags)}**', inline=False)
+
     return em
 
 

@@ -285,39 +285,6 @@ async def give_tag(ctx: lightbulb.SlashContext):
     ).set_footer(text='Теги', icon=ctx.author.display_avatar_url.url))
 
 
-@admin.child()
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
-@lightbulb.option(
-    'user',
-    'Пользователь',
-    hikari.Member,
-    required=False
-)
-@lightbulb.command(
-    'view',
-    'Узнать теги пользователя',
-    auto_defer=True
-)
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def view_tags(ctx: lightbulb.SlashContext):
-    user = ctx.options.user
-    if user == None:
-        user = ctx.author
-    if user.is_bot:
-        return await ctx.respond(embed=embeds.user_is_bot())
-    data = db.find_document(users, {'_id': user.id})
-    if data == None:
-        return await ctx.respond(embed=embeds.user_not_found())
-    
-    _tags = tools.get_tag_names(user.id)
-    if len(_tags) < 1: _tags = ['Тегов нет']
-    await ctx.respond(embed=hikari.Embed(
-        title=f'Теги пользователя {user.username}',
-        description=f'**{" **|** ".join(_tags)}**',
-        color=shiki.Colors.SUCCESS
-    ).set_footer(text='Теги', icon=ctx.author.display_avatar_url.url))
-
-
 def load(bot):
     bot.add_plugin(plugin)
 
