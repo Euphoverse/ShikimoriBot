@@ -215,7 +215,8 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     if ctx.content != None:
         if len(ctx.content) > 15: multiplier += 1
         if len(ctx.content) > 50: multiplier += 1
-    if db.find_document(users, {'_id': user.id})['sponsor'] != None: multiplier *= 2
+    if db.find_document(users, {'_id': user.id}) != None and\
+       db.find_document(users, {'_id': user.id})['sponsor'] != None: multiplier *= 2
     await tools.add_xp(user, random.randint(1, 3) * multiplier)
     await asyncio.sleep(30)
     message_cooldown.remove(user.id)

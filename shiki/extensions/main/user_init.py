@@ -40,7 +40,11 @@ _LOG = logging.getLogger('extensions.main.user_init')
 
 
 async def assign_mod(member: hikari.Member):
-    mod = min(tools.get_mods(await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])),
+    mods = tools.get_mods(await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild']))
+    if len(mods) < 1: 
+        _LOG.error('List of moderators is empty. Guild: %s', cfg[cfg['mode']]['guild'])
+        return
+    mod = min(mods,
               key=lambda id: tools.get_mod_users(id))
     db.update_document(users, {'_id': member.id}, {'mod': mod.id})
 
