@@ -333,7 +333,7 @@ def get_tag_names(user_id: hikari.User.id) -> List:
     output = []
     data = db.find_document(users, {'_id': user_id})
     if data == None:
-        return 'user_not_found'
+        return ['user_not_found']
     _tags = data['tags']
     for tag in tags:
         if tag in _tags:
@@ -342,10 +342,7 @@ def get_tag_names(user_id: hikari.User.id) -> List:
 
 
 def get_all_tags() -> List:
-    output = []
-    for tag in tags:
-        output.append(tag)
-    return output
+    return [_ for _ in tags]
 
 
 def get_tag_from_value(tag_value: str):
