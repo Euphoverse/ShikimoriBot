@@ -39,16 +39,6 @@ plugin = lightbulb.Plugin("UserInit")
 _LOG = logging.getLogger('extensions.main.user_init')
 
 
-async def assign_mod(member: hikari.Member):
-    mods = tools.get_mods(await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild']))
-    if len(mods) < 1: 
-        _LOG.error('List of moderators is empty. Guild: %s', cfg[cfg['mode']]['guild'])
-        return
-    mod = min(mods,
-              key=lambda id: tools.get_mod_users(id))
-    db.update_document(users, {'_id': member.id}, {'mod': mod.id})
-
-
 @plugin.listener(hikari.ShardReadyEvent)
 async def ready_listener(_):
     async for member in plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild']):
@@ -60,7 +50,6 @@ async def ready_listener(_):
                 f'creating user document of user {member.id} ({member})')
             db.insert_document(
                 users, {'_id': member.id, **cfg['db_defaults']['users']})
-            await assign_mod(member)
         else:
             for key in cfg['db_defaults']['users'].keys():
                 if key not in data:
@@ -74,7 +63,6 @@ async def ready_listener(_):
                 f'creating stats document of user {member.id} ({member})')
             db.insert_document(
                 stats, {'_id': member.id, **cfg['db_defaults']['stats']})
-            await assign_mod(member)
         else:
             for key in cfg['db_defaults']['stats'].keys():
                 if key not in data:
@@ -94,34 +82,18 @@ async def member_join(event: hikari.MemberCreateEvent):
             users, {'_id': event.member.id, **cfg['db_defaults']['users']})
         db.insert_document(
             stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
-        await assign_mod(event.member)
         return await event.member.get_guild()\
             .get_channel(cfg[cfg['mode']]['channels']['general'])\
-            .send(f"Хей, %s! Добро пожаловать на наш сервер! Твоим модератором будет %s. Он(а) поможет тебе освоиться на сервере. Также по всем вопросам и за помощью обращайся только к этому модератору <3" % (
-                event.member.mention,
-                event.member.get_guild()
-                .get_member(db.find_document(users, {'_id': event.member.id})['mod'])
-                .mention
+            .send(f"Хей, %s! Добро пожаловать на наш сервер! <3" % (
+                event.member.mention
             ))
-    # Re-assigning moderator
+    # User re-joined
     await tools.grant_achievement(event.user, '4')
-    await assign_mod(event.member)
     await event.member.get_guild()\
         .get_channel(cfg[cfg['mode']]['channels']['general'])\
-        .send(f"С возвращением на наш сервер, %s! Твоим новым модератором будет %s, всё остальное ты знаешь :>" % (
-            event.member.mention,
-            event.member.get_guild()
-            .get_member(db.find_document(users, {'_id': event.member.id})['mod'])
-            .mention
+        .send(f"С возвращением на наш сервер, %s! :>" % (
+            event.member.mention
         ))
-
-
-@plugin.listener(hikari.MemberDeleteEvent)
-async def member_quit(event: hikari.MemberDeleteEvent):
-    if event.old_member.guild_id != cfg[cfg['mode']]['guild']:
-        return
-
-    db.update_document(users, {'_id': event.old_member.id}, {'mod': None})
 
 
 def load(bot):
