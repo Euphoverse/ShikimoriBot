@@ -59,7 +59,7 @@ def profile(user: User, author: User):
 
     em.add_field(
         'Спонсорка', '```Отсутствует```' if data['sponsor']['duration'] is None else '```Активна до ' + (data['sponsor']['started'] + timedelta(data['sponsor']['duration'])).strftime('%d.%m.%Y') + '```')
-    em.add_field('Всего пожертвовано', f"```{data['donated']} рублей```", inline=True)
+    em.add_field('Пожертвовано', f"```{data['donated']} рублей```", inline=True)
     em.add_field('Уровень', f"```{data['level']}```", inline=True)
     em.add_field('Опыт', '```%s/%s```' %
                 (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
@@ -68,7 +68,7 @@ def profile(user: User, author: User):
 
     _tags = tools.get_tag_names(user.id)
     if len(_tags) < 1: _tags = ['Тегов нет']
-    em.add_field('Теги', f'**{" **|** ".join(_tags)}**', inline=False)
+    em.add_field('Теги', f'**{"**,** ".join(_tags)}**', inline=False)
 
     return em
 

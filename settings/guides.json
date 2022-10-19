@@ -226,6 +226,19 @@
                     "color": "#a346a0"
                 },
                 "tags": ["male", "female", "14-15", "16-18", "18+"]
+            },
+            "language": {
+                "type": "tags",
+                "option": {
+                    "label": "Языки на которых вы говорите",
+                    "emoji": "🇯🇵"
+                },
+                "embed": {
+                    "title": "Языки",
+                    "description": "Ниже вы можете выбрать носимые вами языки",
+                    "color": "#a346a0"
+                },
+                "tags": ["english", "russian", "japanese", "kazakh", "turkish", "ukrainian", "french", "german", "spanish", "polish"]
             }
         },
         "special-attribute": ""

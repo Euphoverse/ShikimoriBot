@@ -46,6 +46,8 @@ async def tag_handler(self, select: miru.Select, ctx: miru.ViewContext):
 
     if t not in data['tags']:
         data['tags'].append(t)
+        if t in ["english", "russian", "japanese", "kazakh", "turkish", "ukrainian", "french", "german", "spanish", "polish"]:
+            asyncio.create_task(tools.grant_achievement(ctx.user, '51'))
         await ctx.respond(
             flags=hikari.MessageFlag.EPHEMERAL,
             embed=hikari.Embed(
@@ -171,7 +173,7 @@ class Tags(miru.View):
             ) for t in self.data['tags']
         ]
     
-    @miru.select(placeholder="Выберите роль", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Роли подгружаются. Пожалуйста подождите...', '🕐')])
+    @miru.select(placeholder="Выберите тег", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Роли подгружаются. Пожалуйста подождите...', '🕐')])
     async def topic_select(self, select: miru.Select, ctx: miru.ViewContext):
         await tag_handler(self, select, ctx)
 
