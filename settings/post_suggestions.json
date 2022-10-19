@@ -10,8 +10,6 @@
             "prod": 0
         },
 
-        "content_types": ["image", "video", "link"],
-
-        "add_reactions": ["<:upvote:1029287282110365726>", "<:downvote:1029287328067375134>"]
+        "content_types": ["image", "video", "link"]
     }
 }
