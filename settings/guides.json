@@ -200,6 +200,32 @@
                         }
                     }
                 ]
+            },
+            "games": {
+                "type": "tags",
+                "option": {
+                    "label": "Игры в которые вы играете",
+                    "emoji": "🎮"
+                },
+                "embed": {
+                    "title": "Ваши игры",
+                    "description": "Ниже вы можете выбрать игры в которые вы играете. Они будут отображаться в вашем профиле (/profile)",
+                    "color": "#a346a0"
+                },
+                "tags": ["minecraft", "osu", "terraria", "garrys_mod", "dead_by_daylight", "escape_from_tarkov", "dont_starve_together", "keep_talking", "human_fall_flat", "sea_of_thievs", "payday", "lol", "deceit"]
+            },
+            "about": {
+                "type": "tags",
+                "option": {
+                    "label": "О вас (пол, возраст, пр.)",
+                    "emoji": "👤"
+                },
+                "embed": {
+                    "title": "О вас",
+                    "description": "Ниже вы можете выбрать ваш пол, примерный возраст, и некоторые другие данные",
+                    "color": "#a346a0"
+                },
+                "tags": ["male", "female", "14-15", "16-18", "18+"]
             }
         },
         "special-attribute": ""

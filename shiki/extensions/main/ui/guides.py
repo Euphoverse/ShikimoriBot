@@ -2,10 +2,12 @@ import asyncio
 import miru
 import hikari
 import shiki
-from shiki.utils import tools
+from shiki.utils import tools, db
 
 
 cfg = tools.load_data('./settings/config')
+tags = tools.load_data('./settings/tags')
+users = db.connect().get_database('shiki').get_collection('users')
 
 
 async def role_handler(self, select: miru.Select, ctx: miru.ViewContext):
@@ -38,6 +40,31 @@ async def role_handler(self, select: miru.Select, ctx: miru.ViewContext):
     )
 
 
+async def tag_handler(self, select: miru.Select, ctx: miru.ViewContext):
+    t = select.values[0]
+    data = db.find_document(users, {'_id': ctx.user.id})
+
+    if t not in data['tags']:
+        data['tags'].append(t)
+        await ctx.respond(
+            flags=hikari.MessageFlag.EPHEMERAL,
+            embed=hikari.Embed(
+                title='Тег выдан!',
+                color=shiki.Colors.SUCCESS
+            )
+        )
+    else:
+        data['tags'].remove(t)
+        await ctx.respond(
+            flags=hikari.MessageFlag.EPHEMERAL,
+            embed=hikari.Embed(
+                title='Тег убран!',
+                color=shiki.Colors.ERROR
+            )
+        )
+    db.update_document(users, {'_id': ctx.user.id}, {'tags': data['tags']})
+
+
 async def select_handler(self, select: miru.Select, ctx: miru.ViewContext):
     if select.values[0] == 'deselect':
         await ctx.respond('🚫 Выделение убрано', flags=hikari.MessageFlag.EPHEMERAL, delete_after=3)
@@ -64,6 +91,10 @@ async def select_handler(self, select: miru.Select, ctx: miru.ViewContext):
         rp = Roles(child)
         m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=rp.build())
         await rp.start(m)
+    elif child['type'] == 'tags':
+        tp = Tags(child)
+        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=tp.build())
+        await tp.start(m)
 
 
 class RootPage(miru.View):
@@ -120,6 +151,29 @@ class Roles(miru.View):
     @miru.select(placeholder="Выберите роль", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Роли подгружаются. Пожалуйста подождите...', '🕐')])
     async def topic_select(self, select: miru.Select, ctx: miru.ViewContext):
         await role_handler(self, select, ctx)
+
+    async def on_timeout(self) -> None:
+        try:
+            await self.message.delete()
+        except hikari.NotFoundError:
+            pass
+
+
+class Tags(miru.View):
+    def __init__(self, data: dict) -> None:
+        super().__init__(timeout=600)
+        self.data = data
+        self.children[0].options = [
+            miru.SelectOption(
+                tags[t][tags[t].index(' ') + 1:],
+                t,
+                emoji=tags[t][:tags[t].index(' ')]
+            ) for t in self.data['tags']
+        ]
+    
+    @miru.select(placeholder="Выберите роль", options=[miru.SelectOption('Загрузка...', 'still-loading', 'Роли подгружаются. Пожалуйста подождите...', '🕐')])
+    async def topic_select(self, select: miru.Select, ctx: miru.ViewContext):
+        await tag_handler(self, select, ctx)
 
     async def on_timeout(self) -> None:
         try:
