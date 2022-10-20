@@ -11,7 +11,7 @@
 **Создание копии репозитория**
 
 ```
-git clone https://github.com/JustLian/ShikimoriBot
+git clone https://github.com/Euphoverse/ShikimoriBot
 cd ShikimoriBot
 ```
 
