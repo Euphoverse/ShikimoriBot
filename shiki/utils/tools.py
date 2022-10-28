@@ -45,7 +45,7 @@ DATA_PATH = './data/%s.json'
 _LOG = logging.getLogger('shiki.utils.tools')
 
 
-users = db.connect().get_database('shiki').get_collection('users')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
 
 
 def embed_from_dict(data: dict) -> Embed:

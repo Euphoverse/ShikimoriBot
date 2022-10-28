@@ -29,10 +29,11 @@
 import lightbulb
 import hikari
 from shiki.utils import db, tools, embeds
+import os
 
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
 plugin = lightbulb.Plugin("QuickEconomy")
 emoji_denied = cfg['emojis']['access_denied']
 

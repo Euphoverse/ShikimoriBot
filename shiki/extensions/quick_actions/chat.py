@@ -32,10 +32,11 @@ import lightbulb
 import hikari
 import re
 from shiki.utils import db, tools
+import os
 
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
 plugin = lightbulb.Plugin("QuickChat")
 
 

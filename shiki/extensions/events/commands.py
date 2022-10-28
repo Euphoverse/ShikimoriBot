@@ -34,13 +34,14 @@ from shiki.utils import db, tools
 import shiki
 from .ui.event_selection import EventsMenu
 import aiohttp
+import os
 
 
 msk = zoneinfo.ZoneInfo('Europe/Moscow')
 local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
 plugin = lightbulb.Plugin("EventsCommands")
 
 

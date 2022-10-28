@@ -31,9 +31,10 @@ from datetime import timedelta
 from hikari import Embed, User
 from shiki.utils import db, tools
 import shiki
+import os
 
 
-users = db.connect().get_database('shiki').get_collection('users')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
 cfg = tools.load_data('./settings/config')
 emoji_denied = cfg['emojis']['access_denied']
 currency_emoji = cfg['emojis']['currency']
