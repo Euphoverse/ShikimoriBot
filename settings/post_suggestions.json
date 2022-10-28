@@ -7,7 +7,20 @@
         },
         "review": {
             "test": 1026470414161031198,
-            "prod": 0
+            "prod": 984387974504525824
+        },
+
+        "content_types": ["image", "video", "link"]
+    },
+    "anime-memes": {
+        "type": "message",
+        "post": {
+            "test": 1025645361102065714,
+            "prod": 1035356835089236020
+        },
+        "review": {
+            "test": 1026470414161031198,
+            "prod": 984387974504525824
         },
 
         "content_types": ["image", "video", "link"]

@@ -73,7 +73,7 @@
                         },
                         "embed": {
                             "title": "📙 Краткая версия правил",
-                            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+                            "description": "TBD",
                             "color": "#9d11fa"
                         }
                     }
@@ -139,7 +139,7 @@
     },
     "welcome": {
         "channel": {
-            "prod": 0,
+            "prod": 1035348914406166538,
             "test": 1027185712723935282
         },
         "embed": {
@@ -154,7 +154,7 @@
     },
     "roles": {
         "channel": {
-            "prod": 0,
+            "prod": 989042289609441301,
             "test": 1031702084715810866
         },
         "embed": {
@@ -181,21 +181,21 @@
                     {
                         "name": "🎴 Аниме и Манга",
                         "id": {
-                            "prod": 0,
+                            "prod": 981825459107012638,
                             "test": 1011596264942616645
                         }
                     },
                     {
                         "name": "🎮 Гейминг",
                         "id": {
-                            "prod": 0,
+                            "prod": 1001384781797404672,
                             "test": 1011596264942616642
                         }
                     },
                     {
                         "name": "⛰️ Dungeons & Dragons",
                         "id": {
-                            "prod": 0,
+                            "prod": 989847273129246750,
                             "test": 1011596264942616638
                         }
                     }
