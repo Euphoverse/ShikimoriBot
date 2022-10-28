@@ -30,11 +30,12 @@ import lightbulb
 import hikari
 import logging
 from shiki.utils import db, tools
+import os
 
 
 cfg = tools.load_data('./settings/config')
-users = db.connect().get_database('shiki').get_collection('users')
-stats = db.connect().get_database('shiki').get_collection('stats')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
+stats = db.connect().get_database(os.environ['db']).get_collection('stats')
 plugin = lightbulb.Plugin("UserInit")
 _LOG = logging.getLogger('extensions.main.user_init')
 

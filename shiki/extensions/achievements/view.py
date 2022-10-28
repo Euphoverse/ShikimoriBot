@@ -30,12 +30,13 @@ import lightbulb
 import hikari
 from shiki.utils import db, tools, embeds
 import shiki
+import os
 
 
 cfg = tools.load_data('./settings/config')
 achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database('shiki').get_collection('users')
-stats = db.connect().get_database('shiki').get_collection('stats')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
+stats = db.connect().get_database(os.environ['db']).get_collection('stats')
 plugin = lightbulb.Plugin("Achievements")
 
 

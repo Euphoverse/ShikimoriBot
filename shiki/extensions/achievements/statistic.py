@@ -33,12 +33,13 @@ import lightbulb
 import hikari
 from shiki.utils import db, tools
 import string
+import os
 
 
 cfg = tools.load_data('./settings/config')
 achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database('shiki').get_collection('users')
-stats = db.connect().get_database('shiki').get_collection('stats')
+users = db.connect().get_database(os.environ['db']).get_collection('users')
+stats = db.connect().get_database(os.environ['db']).get_collection('stats')
 plugin = lightbulb.Plugin("AchieveStatistic")
 
 vc_tmp = {}
@@ -94,7 +95,8 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     
     if state.channel_id is None:
         data = db.find_document(stats, {'_id': state.user_id})
-        if data is None: return
+        if data is None: 
+            return
         tm: timedelta
         if data['time_in_vc'] is None:
             tm = datetime.now() - vc_tmp.pop(state.user_id)
