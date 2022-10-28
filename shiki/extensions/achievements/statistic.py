@@ -97,9 +97,9 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
         if data is None: return
         tm: timedelta
         if data['time_in_vc'] is None:
-            tm = datetime.now() - vc_tmp[state.user_id]
+            tm = datetime.now() - vc_tmp.pop(state.user_id)
         else:
-            tm = timedelta(seconds=data['time_in_vc']) + (datetime.now() - vc_tmp[state.user_id])
+            tm = timedelta(seconds=data['time_in_vc']) + (datetime.now() - vc_tmp.pop(state.user_id))
         
         db.update_document(stats, {'_id': state.user_id}, {'time_in_vc': tm.total_seconds()})
 
