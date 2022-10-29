@@ -289,6 +289,8 @@ async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, r
                     user_mentions=True))
         achievement_title = _ach['title']
         achievement_desc = _ach['description']
+        ping = True
+        if 'attributes' in _ach and 'silent' in _ach['attributes']: ping = False
         await user.app.rest.create_message(
             cfg[cfg['mode']]['channels']['actions'],
             f'{user.mention}', embed=Embed(
@@ -296,7 +298,7 @@ async def grant_achievement(user: hikari.User | hikari.Snowflake, achievement, r
                 description=f'Получено достижение ``{achievement_title} - {achievement_desc}``',
                 color=shiki.Colors.ACHIEVEMENT
             ).set_footer(text=f'Достижения', icon=user.display_avatar_url.url),
-            user_mentions=True)
+            user_mentions=ping)
         return True
 
 
