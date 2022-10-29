@@ -71,6 +71,9 @@ async def update_guides():
 
 
 @plugin.command
+@lightbulb.add_checks(
+    lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin'])
+)
 @lightbulb.command(
     'update_guides',
     'Перезагрузка всех файла guides.json'

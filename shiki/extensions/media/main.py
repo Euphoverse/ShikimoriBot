@@ -51,6 +51,9 @@ async def media(ctx: lightbulb.SlashContext):
 
 
 @media.child
+@lightbulb.add_checks(
+    lightbulb.has_roles(cfg[cfg['mode']]['roles']['p:create_embed'])
+)
 @lightbulb.option(
     'channel',
     'Канал в котором будет опубликовано сообщение',

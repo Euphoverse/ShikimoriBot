@@ -43,7 +43,7 @@ emoji_denied = cfg['emojis']['access_denied']
 async def on_error(event: lightbulb.CommandErrorEvent) -> None:
     try:
         if isinstance(event.exception, lightbulb.MissingRequiredRole):
-            await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+            await event.context.respond(embed=hikari.Embed(
                 title='Нет ролей',
                 description='Чтобы использовать эту команду вам нужно иметь специальную роль',
                 color=shiki.Colors.ERROR
@@ -51,7 +51,7 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             return
 
         if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-            await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+            await event.context.respond(embed=hikari.Embed(
                 title='Не так быстро!',
                 description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
                 color=shiki.Colors.ERROR
@@ -67,7 +67,7 @@ async def on_error(event: lightbulb.CommandErrorEvent) -> None:
             ).set_footer(text=f'{emoji_denied} Превышено время ожидания'))
             return
 
-        await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+        await event.context.respond(embed=hikari.Embed(
             color=shiki.Colors.ERROR
         ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
             .set_footer(text=f'{emoji_denied} Ошибка')
