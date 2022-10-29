@@ -52,4 +52,12 @@ class Verification(miru.View):
                 color=shiki.Colors.ERROR
             ), flags=hikari.MessageFlag.EPHEMERAL)
 
-        await ctx.respond_with_modal(VerificationTest('Ваш тег: #%s' % ctx.user.discriminator))
+        await ctx.member.add_role(
+            cfg[cfg['mode']]['roles']['verify']
+        )
+        await ctx.respond(embed=hikari.Embed(
+            title='Успешно',
+            description='Вы верифицировались! Начните общение в канале <#%s>' % cfg[cfg['mode']]['channels']['general'],
+            color=shiki.Colors.SUCCESS
+        ), flags=hikari.MessageFlag.EPHEMERAL)
+        # await ctx.respond_with_modal(VerificationTest('Ваш тег: #%s' % ctx.user.discriminator))
