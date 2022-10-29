@@ -41,37 +41,40 @@ emoji_denied = cfg['emojis']['access_denied']
 
 @plugin.listener(lightbulb.CommandErrorEvent)
 async def on_error(event: lightbulb.CommandErrorEvent) -> None:
-    if isinstance(event.exception, lightbulb.MissingRequiredRole):
+    try:
+        if isinstance(event.exception, lightbulb.MissingRequiredRole):
+            await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+                title='Нет ролей',
+                description='Чтобы использовать эту команду вам нужно иметь специальную роль',
+                color=shiki.Colors.ERROR
+            ).set_footer(text=f'{emoji_denied} Отсутствие разрешения'))
+            return
+
+        if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
+            await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
+                title='Не так быстро!',
+                description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
+                color=shiki.Colors.ERROR
+            ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
+            return
+
+        if isinstance(event.exception, lightbulb.errors.CommandInvocationError) and\
+                isinstance(event.exception.original, asyncio.TimeoutError):
+            await event.context.edit_last_response(embed=hikari.Embed(
+                title='Отменено',
+                description=f'Действие было отменено в связи с долгим ожиданием ответа',
+                color=shiki.Colors.ERROR
+            ).set_footer(text=f'{emoji_denied} Превышено время ожидания'))
+            return
+
         await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
-            title='Нет ролей',
-            description='Чтобы использовать эту команду вам нужно иметь специальную роль',
             color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Отсутствие разрешения'))
-        return
-
-    if isinstance(event.exception, lightbulb.CommandIsOnCooldown):
-        await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
-            title='Не так быстро!',
-            description=f'Вы можете использовать эту команду снова через {event.exception.retry_after:.1f} s',
-            color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
-        return
-
-    if isinstance(event.exception, lightbulb.errors.CommandInvocationError) and\
-            isinstance(event.exception.original, asyncio.TimeoutError):
-        await event.context.edit_last_response(embed=hikari.Embed(
-            title='Отменено',
-            description=f'Действие было отменено в связи с долгим ожиданием ответа',
-            color=shiki.Colors.ERROR
-        ).set_footer(text=f'{emoji_denied} Превышено время ожидания'))
-        return
-
-    await event.context.respond(hikari.ResponseType.MESSAGE_UPDATE, embed=hikari.Embed(
-        color=shiki.Colors.ERROR
-    ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
-        .set_footer(text=f'{emoji_denied} Ошибка')
-        .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков.\nСкоро проблема будет решена!')
-    )
+        ).set_author(name='Ссылка на офф. сервер', url='https://discord.gg/3s7mnTm9Xt')
+            .set_footer(text=f'{emoji_denied} Ошибка')
+            .add_field('Получена неизвестная ошибка', 'Данные об ошибке были отправлены на сервер разработчиков.\nСкоро проблема будет решена!')
+        )
+    except Exception as e:
+        traceback.print_exception(e)
 
     await plugin.bot.rest.create_message(
         channel=cfg[cfg['mode']]['channels']['errors'],
