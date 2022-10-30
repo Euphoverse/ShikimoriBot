@@ -94,7 +94,7 @@ async def donate(ctx: lightbulb.SlashContext):
                         color=shiki.Colors.SPONSOR
                     ).set_footer(str(ctx.author), icon=ctx.author.display_avatar_url.url)
                 )
-                if donated >= 5:
+                if donated >= 150:
                     try:
                         await plugin.bot.rest.add_role_to_member(
                             ctx.guild_id,

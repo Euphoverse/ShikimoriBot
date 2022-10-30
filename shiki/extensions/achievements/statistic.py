@@ -129,10 +129,6 @@ async def state_update(event: hikari.VoiceStateUpdateEvent):
     if state.channel_id == cfg[cfg['mode']]['channels']['radio']:
         await tools.grant_achievement(event.state.user_id, '35', plugin.bot.rest)
     
-    data = tools.load_data('./data/events')
-    if state.channel_id in [e['channel'] for e in data.values() if e['started'] == True]:
-        await tools.grant_achievement(event.state.user_id, '43', plugin.bot.rest)
-    
     if state.is_streaming == True:
         await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
 

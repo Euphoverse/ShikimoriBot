@@ -78,6 +78,11 @@ async def update_listener(event: hikari.ScheduledEventUpdateEvent):
         host = await event.app.rest.fetch_user(data[str(e.id)]['host'])
         await tools.grant_achievement(host, '41')
         await plugin.bot.update_voice_state(e.guild_id, None)
+        guild = plugin.bot.cache.get_guild(e.guild_id)
+        users = [v for v in guild.get_voice_states().values()
+                if v.channel_id == data[str(e.id)]['channel']]
+        for u in users:
+            asyncio.create_task(tools.grant_achievement(u, '43'))
         data.pop(str(event.event.id))
         tools.update_data('./data/events', data)
         async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
