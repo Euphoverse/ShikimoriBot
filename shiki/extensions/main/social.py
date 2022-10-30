@@ -62,6 +62,19 @@ async def profile(ctx: lightbulb.SlashContext):
 
 
 @plugin.command
+@lightbulb.command(
+    'Профиль пользователя',
+    'Просомтреть профиль пользователя'
+)
+@lightbulb.implements(lightbulb.UserCommand)
+async def profile_user(ctx: lightbulb.UserContext):
+    await ctx.respond(
+        embed=embeds.profile(ctx.author, ctx.author),
+        flags=hikari.MessageFlag.EPHEMERAL
+    )
+
+
+@plugin.command
 @lightbulb.option(
     'type',
     'Тип списка',

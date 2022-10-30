@@ -51,7 +51,7 @@ _auth_key = os.environ['qiwi_auth_key']
     'На какое время вы хотите оформить подписку',
     required=True,
     choices=(
-        hikari.CommandChoice(name='15 дней - 100р.', value='15 дней|2|15'),
+        hikari.CommandChoice(name='15 дней - 100р.', value='15 дней|100|15'),
         hikari.CommandChoice(name='1 месяц - 200р.', value='1 месяц|200|30'),
         hikari.CommandChoice(name='2 месяца - 380р. (-20р.)', value='2 месяца|380|60'),
         hikari.CommandChoice(name='3 месяца - 550р. (-50р.)', value='3 месяца|550|90'),
