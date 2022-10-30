@@ -68,8 +68,9 @@ async def profile(ctx: lightbulb.SlashContext):
 )
 @lightbulb.implements(lightbulb.UserCommand)
 async def profile_user(ctx: lightbulb.UserContext):
+    ctx.user
     await ctx.respond(
-        embed=embeds.profile(ctx.author, ctx.author),
+        embed=embeds.profile(ctx.options.target, ctx.author),
         flags=hikari.MessageFlag.EPHEMERAL
     )
 
