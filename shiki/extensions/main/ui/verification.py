@@ -60,4 +60,10 @@ class Verification(miru.View):
             description='Вы верифицировались! Начните общение в канале <#%s>' % cfg[cfg['mode']]['channels']['general'],
             color=shiki.Colors.SUCCESS
         ), flags=hikari.MessageFlag.EPHEMERAL)
+        await ctx.bot.rest.create_message(
+            cfg[cfg['mode']]['channels']['general'],
+            f"Хей, %s! Добро пожаловать на наш сервер! <3" % (
+                ctx.user.mention
+            )
+        )
         # await ctx.respond_with_modal(VerificationTest('Ваш тег: #%s' % ctx.user.discriminator))

@@ -83,13 +83,13 @@ async def member_join(event: hikari.MemberCreateEvent):
             users, {'_id': event.member.id, **cfg['db_defaults']['users']})
         db.insert_document(
             stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
-        return await event.member.get_guild()\
-            .get_channel(cfg[cfg['mode']]['channels']['general'])\
-            .send(f"Хей, %s! Добро пожаловать на наш сервер! <3" % (
-                event.member.mention
-            ))
+        return
+
     # User re-joined
     await tools.grant_achievement(event.user, '4')
+    await event.member.add_role(
+        cfg[cfg['mode']]['roles']['verify']
+    )
     await event.member.get_guild()\
         .get_channel(cfg[cfg['mode']]['channels']['general'])\
         .send(f"С возвращением на наш сервер, %s! :>" % (
