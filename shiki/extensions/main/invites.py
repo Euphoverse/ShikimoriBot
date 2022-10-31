@@ -70,6 +70,7 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
     for invite in await plugin.bot.rest.fetch_guild_invites(guild=cfg[cfg['mode']]['guild']):
         if invite.uses != invites[invite.code]['uses']:
             inviter = invite.inviter
+            invites[invite.code]['uses'] = invite.uses
             await update_invites(inviter, ctx)
             return
     for key in invites:
