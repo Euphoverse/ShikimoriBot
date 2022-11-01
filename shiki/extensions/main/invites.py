@@ -70,6 +70,7 @@ async def member_joined(ctx: hikari.MemberCreateEvent):
     for invite in await plugin.bot.rest.fetch_guild_invites(guild=cfg[cfg['mode']]['guild']):
         if invite.uses != invites[invite.code]['uses']:
             inviter = invite.inviter
+            invites[invite.code]['uses'] = invite.uses
             await update_invites(inviter, ctx)
             return
     for key in invites:
@@ -111,11 +112,16 @@ async def update_invites(inviter, ctx):
     data = db.find_document(users, {'_id': inviter.id})
     data2 = db.find_document(stats, {'_id': inviter.id})
     data['invites'] += 1
-    if data['invites'] == 2: asyncio.create_task(tools.grant_achievement(inviter, 13))
-    if data['invites'] == 5: asyncio.create_task(tools.grant_achievement(inviter, 14))
-    if data['invites'] == 15: asyncio.create_task(tools.grant_achievement(inviter, 15))
-    if data['invites'] == 30: asyncio.create_task(tools.grant_achievement(inviter, 16))
-    if data['invites'] == 100: asyncio.create_task(tools.grant_achievement(inviter, 17))
+    if data['invites'] == 2: 
+        asyncio.create_task(tools.grant_achievement(inviter, '13'))
+    if data['invites'] == 5: 
+        asyncio.create_task(tools.grant_achievement(inviter, '14'))
+    if data['invites'] == 15: 
+        asyncio.create_task(tools.grant_achievement(inviter, '15'))
+    if data['invites'] == 30: 
+        asyncio.create_task(tools.grant_achievement(inviter, '16'))
+    if data['invites'] == 100: 
+        asyncio.create_task(tools.grant_achievement(inviter, '17'))
     if data['invites'] > data2['invites_claimed']:
         data2['invites_claimed'] = data['invites']
         if data['invites'] % 5 == 0:

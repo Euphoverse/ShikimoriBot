@@ -91,7 +91,7 @@ async def sponsor(ctx: lightbulb.SlashContext):
                         description='Ваша спонсорская подписка продлена на %s!' % text,
                         color=shiki.Colors.SPONSOR
                 ).set_author(name=str(ctx.user), icon=ctx.user.display_avatar_url.url))
-                asyncio.create_task(await tools.sponsor_extension(ctx.author, days))
+                asyncio.create_task(tools.sponsor_extension(ctx.author, days))
                 await plugin.bot.rest.create_message(
                     cfg[cfg['mode']]['channels']['log'],
                     embed=hikari.Embed(
