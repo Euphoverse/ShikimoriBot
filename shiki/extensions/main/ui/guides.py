@@ -146,8 +146,13 @@ class Roles(miru.View):
         self.data = data
         self.children[0].options = [
             miru.SelectOption(
-                r['name'],
-                r['id'][cfg['mode']]
+                label=r['name'],
+                value=r['id'][cfg['mode']]
+            ) if not data['replace_emojis']
+            else miru.SelectOption(
+                label=r['name'][r['name'].index(' ') + 1:],
+                value=r['id'][cfg['mode']],
+                emoji=r['name'][:r['name'].index(' ')]
             ) for r in self.data['roles']
         ]
     
