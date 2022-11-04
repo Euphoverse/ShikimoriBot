@@ -95,6 +95,9 @@ async def member_join(event: hikari.MemberCreateEvent):
         .send(f"С возвращением на наш сервер, %s! :>" % (
             event.member.mention
         ))
+    await event.member.get_guild()\
+        .get_channel(cfg[cfg['mode']]['channels']['mods_only'])\
+        .send(f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {event.member} (<@{event.member.id}>)')
 
 
 def load(bot):
