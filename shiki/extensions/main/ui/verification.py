@@ -66,7 +66,4 @@ class Verification(miru.View):
                 ctx.user.mention
             )
         )
-        await ctx.member.get_guild()\
-            .get_channel(cfg[cfg['mode']]['channels']['mods_only'])\
-            .send(f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {ctx.member} (<@{ctx.member.id}>)')
         # await ctx.respond_with_modal(VerificationTest('Ваш тег: #%s' % ctx.user.discriminator))

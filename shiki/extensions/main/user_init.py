@@ -83,6 +83,9 @@ async def member_join(event: hikari.MemberCreateEvent):
             users, {'_id': event.member.id, **cfg['db_defaults']['users']})
         db.insert_document(
             stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
+        await event.member.get_guild()\
+            .get_channel(cfg[cfg['mode']]['channels']['mods_only'])\
+            .send(f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {event.member} (<@{event.member.id}>)')
         return
 
     # User re-joined
@@ -95,9 +98,6 @@ async def member_join(event: hikari.MemberCreateEvent):
         .send(f"С возвращением на наш сервер, %s! :>" % (
             event.member.mention
         ))
-    await event.member.get_guild()\
-        .get_channel(cfg[cfg['mode']]['channels']['mods_only'])\
-        .send(f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {event.member} (<@{event.member.id}>)')
 
 
 def load(bot):
