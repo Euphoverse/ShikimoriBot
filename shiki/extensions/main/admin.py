@@ -268,6 +268,98 @@ async def get_info(ctx: lightbulb.SlashContext):
     await ctx.respond(embed=em)
 
 
+@admin.child()
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'tag',
+    'Тэг',
+    str,
+    required=False
+)
+@lightbulb.option(
+    'action',
+    'Действие',
+    str,
+    required=True,
+    choices=['give', 'remove', 'list']
+)
+@lightbulb.command(
+    'tag',
+    'Операции с тегами',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def give_achievement(ctx: lightbulb.SlashContext):
+    user = ctx.options.user
+    if user == None:
+        user = ctx.author
+    action = ctx.options.action
+
+    if action == 'list':
+        await ctx.respond(embed=hikari.Embed(
+            color=shiki.Colors.SUCCESS
+        ).add_field(
+            "Список тегов",
+            '``' + '\n'.join(tags.keys()) + '``'
+        ))
+        return
+    
+    if user.is_bot:
+        return await ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    if data == None:
+        return await ctx.respond(embed=embeds.user_not_found())
+    tag = ctx.options.tag
+    if tag == None:
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description="Вы не указали тэг!",
+            color=shiki.Colors.ERROR
+        ))
+    if tag not in tags:
+        return await ctx.respond(embed=hikari.Embed(
+            title='Ошибка',
+            description="Тэг не найден!",
+            color=shiki.Colors.ERROR
+        ))
+
+    if action == 'give':
+        if tag in data['tags']:
+            return await ctx.respond(embed=hikari.Embed(
+                title='Ошибка',
+                description="Тэг уже имеется у пользователя!",
+                color=shiki.Colors.WARNING
+            ))
+        data['tags'].append(tag)
+        await ctx.respond(embed=hikari.Embed(
+                title='Выполнено',
+                description=f"Тэг ``{tag}`` был выдан **{user}**!",
+                color=shiki.Colors.SUCCESS
+            ).set_footer(text='Выдача тегов', icon=ctx.author.display_avatar_url.url))
+
+    if action == 'remove':
+        if tag not in data['tags']:
+            return await ctx.respond(embed=hikari.Embed(
+                title='Ошибка',
+                description="Тэг отсутвует у пользователя!",
+                color=shiki.Colors.WARNING
+            ))
+        data['tags'].remove(tag)
+        await ctx.respond(embed=hikari.Embed(
+                title='Выполнено',
+                description=f"Тэг ``{tag}`` был удалён у **{user}**!",
+                color=shiki.Colors.SUCCESS
+            ).set_footer(text='Выдача тегов', icon=ctx.author.display_avatar_url.url))
+    
+    db.update_document(users, {'_id': user.id}, {'tags': data['tags']})
+
+
 def load(bot):
     bot.add_plugin(plugin)
 
