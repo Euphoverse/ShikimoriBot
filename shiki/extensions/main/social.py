@@ -35,6 +35,7 @@ import os
 
 cfg = tools.load_data('./settings/config')
 users = db.connect().get_database(os.environ['db']).get_collection('users')
+stats = db.connect().get_database(os.environ['db']).get_collection('stats')
 plugin = lightbulb.Plugin("Social")
 currency_emoji = cfg['emojis']['currency']
 emoji_denied = cfg['emojis']['access_denied']
@@ -81,7 +82,7 @@ async def profile_user(ctx: lightbulb.UserContext):
     'Тип списка',
     str,
     required=True,
-    choices=['xp', 'money', 'donated', 'invites']
+    choices=['xp', 'money', 'donated', 'invites', 'time_in_vc']
 )
 @lightbulb.command(
     'leaderboard',
@@ -91,7 +92,10 @@ async def profile_user(ctx: lightbulb.UserContext):
 @lightbulb.implements(lightbulb.SlashCommand)
 async def leaderboard(ctx: lightbulb.SlashContext):
     """ Data sort """
-    all_data = db.find_document(users, {}, multiple=True)
+    if ctx.options.type == 'time_in_vc':
+        all_data = db.find_document(stats, {}, multiple=True)
+    else:
+        all_data = db.find_document(users, {}, multiple=True)
     data = {}
     type = ctx.options.type
     for sdata in all_data:
@@ -101,7 +105,7 @@ async def leaderboard(ctx: lightbulb.SlashContext):
 
     """ Embed construction """
     em = hikari.Embed(
-        title=f'Список лидеров по `{ctx.options.type}`',
+        title=f'Список лидеров по `{type}`',
         color=shiki.Colors.SUCCESS
     ).set_footer(text=f'Запросил {ctx.author.username}',
                  icon=ctx.author.display_avatar_url.url)
@@ -117,6 +121,14 @@ async def leaderboard(ctx: lightbulb.SlashContext):
             username = user.username
         pref = ''
         if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[user_id])}'
+        if type == 'time_in_vc':
+            vc_time = data[user_id]
+            hh = round(vc_time // 3600)
+            mm = round((vc_time // 60) % 60)
+            ss = round(vc_time % 60)
+            if(mm < 10): mm = f'0{mm}'
+            if(ss < 10): ss = f'0{ss}'
+            data[user_id] = f'{hh}:{mm}:{ss}'
         pref = f'#{index}'
         if index == 1: pref = "🥇 "
         if index == 2: pref = "🥈 "
