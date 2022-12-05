@@ -58,12 +58,12 @@ async def update_guides():
         if (history[0].author.id != me.id if len(history) != 0 else True):
             m = await plugin.bot.rest.create_message(
                 channel=guides[g]['channel'][cfg['mode']],
-                embed=tools.embed_from_dict(guides[g]['embed']),
+                embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
                 components=comp
             )
         else:
             m = await history[0].edit(
-                embed=tools.embed_from_dict(guides[g]['embed']),
+                embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
                 components=comp
             )
 
