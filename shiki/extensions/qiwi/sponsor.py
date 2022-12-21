@@ -114,12 +114,7 @@ async def sponsor(ctx: lightbulb.SlashContext):
                 return
 
 
-@plugin.listener(hikari.ShardReadyEvent)
-async def on_ready(_):
-    sponsor_check.start()
-
-
-@tasks.task(d=1)
+@tasks.task(d=1, auto_start=True)
 async def sponsor_check():
     _LOG.info('starting sponsor checking')
 
