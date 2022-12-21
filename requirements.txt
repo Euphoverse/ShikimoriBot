@@ -5,4 +5,5 @@ asyncio
 pyQiwiP2P
 pymongo
 lightbulb-ext-tungsten
+uvloop
 git+https://github.com/HyperGH/hikari-miru@feature/modals
