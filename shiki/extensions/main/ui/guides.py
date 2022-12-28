@@ -84,19 +84,19 @@ async def select_handler(self, select: miru.Select, ctx: miru.ViewContext):
     if child['type'] == 'page':
         await ctx.respond(
             flags=hikari.MessageFlag.EPHEMERAL,
-            embed=tools.embed_from_dict(child['embed'])
+            embeds=[tools.embed_from_dict(e) for e in child['embeds']]
         )
     elif child['type'] == 'sub':
         sp = SubPage(child)
-        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=sp.build())
+        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embeds=[tools.embed_from_dict(e) for e in child['embeds']], components=sp.build())
         await sp.start(m)
     elif child['type'] == 'roles':
         rp = Roles(child)
-        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=rp.build())
+        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embeds=[tools.embed_from_dict(e) for e in child['embeds']], components=rp.build())
         await rp.start(m)
     elif child['type'] == 'tags':
         tp = Tags(child)
-        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embed=tools.embed_from_dict(child['embed']), components=tp.build())
+        m = await ctx.respond(flags=hikari.MessageFlag.EPHEMERAL, embeds=[tools.embed_from_dict(e) for e in child['embeds']], components=tp.build())
         await tp.start(m)
 
 
