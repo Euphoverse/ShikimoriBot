@@ -177,21 +177,25 @@ class UpdRoles(miru.View):
         super().__init__(timeout=600)
         self.data = data
         for r in self.data['roles']:
-            btn = (miru.Button(
+            if not data['replace_emojis']:
+                btn = miru.Button(
                     label=r['name'],
                     custom_id=r['id'][cfg['mode']],
                     style=hikari.ButtonStyle.SECONDARY
-                ) if not data['replace_emojis']
-                else miru.Button(
+                )
+            else:
+                btn = miru.Button(
                     label=r['name'][r['name'].index(' ') + 1:],
                     custom_id=r['id'][cfg['mode']],
                     emoji=r['name'][:r['name'].index(' ')],
                     style=hikari.ButtonStyle.SECONDARY
-                ))
+                )
+
             btn.callback = self.role_select
             self.add_item(btn)
 
     async def role_select(self, ctx: miru.ViewContext):
+        print(ctx.custom_id)
         await role_handler(self, ctx.custom_id, ctx)
 
     async def on_timeout(self) -> None:
@@ -289,6 +293,7 @@ async def tag_handler(self, t, ctx):
 
 async def role_handler(self, r, ctx):
     if r not in ctx.member.role_ids:
+        print(1)
         await ctx.bot.rest.add_role_to_member(
             ctx.guild_id,
             ctx.user.id,
@@ -302,6 +307,7 @@ async def role_handler(self, r, ctx):
             )
         )
         return
+    print(2)
     await ctx.bot.rest.remove_role_from_member(
         ctx.guild_id,
         ctx.user.id,
