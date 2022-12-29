@@ -49,6 +49,9 @@ users = db.connect().get_database(os.environ['db']).get_collection('users')
 
 
 def embed_from_dict(data: dict) -> Embed:
+    if 'description' in data:
+        if isinstance(data['description'], list):
+            data['description'] = '\n'.join(data['description'])
     embed = Embed(
         title=data.get('title', None),
         description=data.get('description', None),
