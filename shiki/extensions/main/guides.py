@@ -54,7 +54,10 @@ async def update_guides():
     for g in guides:
         comp = None
         if 'children' in guides[g]:
-            comp = guides_ui.RootPage(g)
+            if guides[g]['special-attribute'] == 'updated':
+                comp = guides_ui.UpdRootPage(g)
+            else:
+                comp = guides_ui.RootPage(g)
         
         if guides[g]['special-attribute'] == 'verification':
             comp = verify.Verification()
