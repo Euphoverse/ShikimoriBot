@@ -172,31 +172,33 @@ class UpdSubPage(miru.View):
             pass
 
 
+class RolesButton(miru.Button):
+    def __init__(self, r, name, replace_emojis):
+        self.r = r
+        if not replace_emojis:
+            super().__init__(
+                label=name,
+                style=hikari.ButtonStyle.SECONDARY
+            )
+        else:
+            super().__init__(
+                label=name[name.index(' ') + 1:],
+                emoji=name[:name.index(' ')],
+                style=hikari.ButtonStyle.SECONDARY
+            )
+    
+    async def callback(self, ctx) -> None:
+        await role_handler(None, self.r, ctx)
+
 class UpdRoles(miru.View):
     def __init__(self, data: dict) -> None:
         super().__init__(timeout=600)
         self.data = data
         for r in self.data['roles']:
-            if not data['replace_emojis']:
-                btn = miru.Button(
-                    label=r['name'],
-                    custom_id=r['id'][cfg['mode']],
-                    style=hikari.ButtonStyle.SECONDARY
-                )
-            else:
-                btn = miru.Button(
-                    label=r['name'][r['name'].index(' ') + 1:],
-                    custom_id=r['id'][cfg['mode']],
-                    emoji=r['name'][:r['name'].index(' ')],
-                    style=hikari.ButtonStyle.SECONDARY
-                )
-
-            btn.callback = self.role_select
-            self.add_item(btn)
-
-    async def role_select(self, ctx: miru.ViewContext):
-        print(ctx.custom_id)
-        await role_handler(self, ctx.custom_id, ctx)
+            self.add_item(RolesButton(
+                r['id'][cfg['mode']],
+                r['name'], data['replace_emojis']
+            ))
 
     async def on_timeout(self) -> None:
         try:
@@ -293,7 +295,6 @@ async def tag_handler(self, t, ctx):
 
 async def role_handler(self, r, ctx):
     if r not in ctx.member.role_ids:
-        print(1)
         await ctx.bot.rest.add_role_to_member(
             ctx.guild_id,
             ctx.user.id,
@@ -307,7 +308,6 @@ async def role_handler(self, r, ctx):
             )
         )
         return
-    print(2)
     await ctx.bot.rest.remove_role_from_member(
         ctx.guild_id,
         ctx.user.id,
