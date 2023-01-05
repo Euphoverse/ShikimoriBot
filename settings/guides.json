@@ -423,11 +423,18 @@
             "prod": 1058328101861457971,
             "test": 1048531410253783040
         },
-        "embeds": [{
+        "embeds": [
+            {
             "title": "Локальный топ",
             "description": "Здесь будет появляться доска лидеров osu! среди участников нашего сервера. Это будет функция Сиесты, она пока что в разработке...",
             "color": "#BDE0FE"
-        }], "special-attribute": null
+            },
+            {
+                "title": "Локальный топ (performance)",
+                "description": "Идёт загрузка, подождите....",
+                "color": "#BDE0FE"
+            }
+        ], "special-attribute": "osu_leaderboard"
     },
     "waifus": {
         "channel": {

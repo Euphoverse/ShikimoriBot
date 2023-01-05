@@ -33,6 +33,7 @@ from shiki.utils import db, tools
 import shiki
 from .ui import guides as guides_ui
 from .ui import verification as verify
+from .ui import osu_leaderboard as osu_lb
 import os
 
 
@@ -61,6 +62,9 @@ async def update_guides():
         
         if guides[g]['special-attribute'] == 'verification':
             comp = verify.Verification()
+        
+        elif guides[g]['special-attribute'] == 'osu_leaderboard':
+            comp = osu_lb.Leaderboard()
 
         lmg_key = '{}_{}'.format(g, guides[g]['channel'][cfg['mode']])
         if lmg_key in sent:
@@ -106,6 +110,8 @@ async def update_guides():
 
         if comp:
             await comp.start(m)
+            if guides[g]['special-attribute'] == 'osu_leaderboard' and not osu_lb.auto_update.is_running:
+                osu_lb.auto_update.start()
 
     tools.update_data('./data/sent_messages', sent)
 
