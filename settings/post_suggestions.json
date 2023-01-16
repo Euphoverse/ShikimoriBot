@@ -1,15 +1,1 @@
-{
-    "memes": {
-        "type": "message",
-        "post": {
-            "test": 0,
-            "prod": 0
-        },
-        "review": {
-            "test": 0,
-            "prod": 0
-        },
-
-        "content_types": ["image", "video", "link"]
-    }
-}
+{}

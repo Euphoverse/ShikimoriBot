@@ -43,31 +43,71 @@ _LOG = logging.getLogger('extensions.main.guides')
 
 
 async def update_guides():
-    guides = tools.load_data('./settings/guides', encoding='utf8')
+    if not os.path.isfile('./data/sent_messages.json'):
+        with open('./data/sent_messages.json', 'w', encoding='utf8') as f:
+            f.write('{}')
+
+    guides = tools.load_data('./settings/guides')
+    sent = tools.load_data('./data/sent_messages')
     me = plugin.bot.get_me()
 
     for g in guides:
         comp = None
         if 'children' in guides[g]:
-            comp = guides_ui.RootPage(g)
+            if guides[g]['special-attribute'] == 'updated':
+                comp = guides_ui.UpdRootPage(g)
+            else:
+                comp = guides_ui.RootPage(g)
         
         if guides[g]['special-attribute'] == 'verification':
             comp = verify.Verification()
 
-        history = await plugin.bot.rest.fetch_messages(guides[g]['channel'][cfg['mode']])
-        if (history[0].author.id != me.id if len(history) != 0 else True):
-            m = await plugin.bot.rest.create_message(
-                channel=guides[g]['channel'][cfg['mode']],
-                embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp
-            )
+        lmg_key = '{}_{}'.format(g, guides[g]['channel'][cfg['mode']])
+        if lmg_key in sent:
+            try:
+                m = await plugin.bot.rest.fetch_message(
+                    guides[g]['channel'][cfg['mode']],
+                    sent[lmg_key]
+                )
+                await m.edit(
+                    embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
+                    components=comp
+                )
+            except hikari.NotFoundError:
+                history = await plugin.bot.rest.fetch_messages(guides[g]['channel'][cfg['mode']])
+                if (history[0].author.id != me.id if len(history) != 0 else True):
+                    m = await plugin.bot.rest.create_message(
+                        channel=guides[g]['channel'][cfg['mode']],
+                        embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
+                        components=comp
+                    )
+                    
+                else:
+                    m = await history[0].edit(
+                        embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
+                        components=comp
+                    )
+                sent[lmg_key] = m.id
         else:
-            m = await history[0].edit(
-                embed=tools.embed_from_dict(guides[g]['embed']),
-                components=comp
-            )
+            history = await plugin.bot.rest.fetch_messages(guides[g]['channel'][cfg['mode']])
+            if (history[0].author.id != me.id if len(history) != 0 else True):
+                m = await plugin.bot.rest.create_message(
+                    channel=guides[g]['channel'][cfg['mode']],
+                    embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
+                    components=comp
+                )
+                
+            else:
+                m = await history[0].edit(
+                    embeds=[tools.embed_from_dict(e) for e in guides[g]['embeds']],
+                    components=comp
+                )
+            sent[lmg_key] = m.id
 
-        await comp.start(m)
+        if comp:
+            await comp.start(m)
+
+    tools.update_data('./data/sent_messages', sent)
 
 
 @plugin.command

@@ -5,4 +5,5 @@ asyncio
 pyQiwiP2P
 pymongo
 lightbulb-ext-tungsten
-git+https://github.com/HyperGH/hikari-miru@feature/modals
+hikari-miru
+tzdata
