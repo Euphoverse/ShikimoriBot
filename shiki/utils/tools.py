@@ -161,7 +161,10 @@ def get_mods(guild: Guild) -> List[Member]:
     return mods
 
 
-async def add_xp(user: hikari.Member, amount: int):
+level_rewards = load_data('./settings/level_rewards')[cfg['mode']]
+
+
+async def add_xp(user: hikari.User, amount: int):
     data = db.find_document(users, {'_id': user.id})
     xp = data['xp'] + amount
     needed_xp = calc_xp(data['level'] + 1)
@@ -171,6 +174,11 @@ async def add_xp(user: hikari.Member, amount: int):
         data['level'] += 1
         needed_xp = calc_xp(data['level'] + 1)
         reward += calc_coins(data['level'])
+        if str(data['level']) in level_rewards:
+            await give_level_reward(
+                level_rewards[(str(data['level']))],
+                user
+            )
         await user.app.rest.create_message(
             channel=cfg[cfg['mode']]['channels']['actions'],
             embed=Embed(
@@ -351,3 +359,13 @@ def get_tag_from_value(tag_value: str):
     for _tag in tags.keys():
         if tags[_tag] == tag_value:
             return _tag
+
+
+async def give_level_reward(reward, member: hikari.Member):
+    if 'roles' in reward:
+        roles = reward['roles']
+        if type(roles) == int:
+            asyncio.create_task(member.add_role(roles))
+        else:
+            for role in roles:
+                asyncio.create_task(member.add_role(role))

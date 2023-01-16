@@ -59,5 +59,5 @@ def run() -> None:
 
         uvloop.install()
     tasks.load(bot)
-    miru.load(bot)
+    miru.install(bot)
     bot.run(activity=hikari.Activity(name='github: Euphoverse/ShikimoriBot'))

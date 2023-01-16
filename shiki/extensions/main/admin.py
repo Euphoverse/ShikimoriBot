@@ -60,19 +60,19 @@ async def admin(ctx: lightbulb.SlashContext):
 @lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
-    'Получатель халявы',
+    'Получатель',
     hikari.Member,
     required=False
 )
 @lightbulb.option(
     'amount',
-    'Сумма халявы',
+    'Сумма',
     int,
     required=True
 )
 @lightbulb.command(
     'increase',
-    'Выдать пользователю деньги',
+    'Выдать пользователю валюту',
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
@@ -97,7 +97,7 @@ async def add_money(ctx: lightbulb.SlashContext):
 @lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
-    'Жертва',
+    'Пользователь',
     hikari.Member,
     required=True
 )
@@ -168,7 +168,7 @@ async def reset_user(ctx: lightbulb.SlashContext):
 )
 @lightbulb.command(
     'revoke',
-    'Удалить ачивку у пользователя',
+    'Убрать ачивку у пользователя',
     auto_defer=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
@@ -358,6 +358,42 @@ async def give_achievement(ctx: lightbulb.SlashContext):
             ).set_footer(text='Выдача тегов', icon=ctx.author.display_avatar_url.url))
     
     db.update_document(users, {'_id': user.id}, {'tags': data['tags']})
+
+
+@admin.child
+@lightbulb.option(
+    'user',
+    'Получатель',
+    hikari.User
+)
+@lightbulb.option(
+    'amount',
+    'Количество получаемого опыта',
+    int,
+    required=True,
+    min_value=1
+)
+@lightbulb.command(
+    'xp',
+    'Выдать пользователю опыт',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def admin_add_xp(ctx: lightbulb.SlashContext):
+    user = ctx.options.user if ctx.options.user != None else ctx.author
+    if user.is_bot:
+        return await ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    if data == None:
+        return await ctx.respond(embed=embeds.user_not_found())
+    
+    await tools.add_xp(user, ctx.options.amount)
+    await ctx.respond(embed=hikari.Embed(
+        title='Выполнено',
+        description=f'Опыт в размере **{ctx.options.amount}** был выдан пользователю `{user}`!',
+        color=shiki.Colors.SUCCESS
+    ))
+
 
 
 def load(bot):
