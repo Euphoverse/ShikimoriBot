@@ -204,6 +204,17 @@ async def daily(ctx: lightbulb.SlashContext):
         ).set_footer(text=f'{emoji_denied} Превышение лимитов'))
 
 
+@economy.child
+@lightbulb.command(
+    'shop',
+    'Магазин кристаллов. Здесь вы можете купить нитро, osu!supporter или вывести деньги на Qiwi',
+    auto_defer=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def shop(ctx: lightbulb.SlashContext):
+    ...
+
+
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
     user = ctx.author

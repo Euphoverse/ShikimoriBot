@@ -22,7 +22,8 @@
             "invites": 0,
             "lobbies": [],
             "last_daily": 0,
-            "achievements": []
+            "achievements": [],
+            "crystals": 0
         },
         "stats": {
             "invites_claimed": 0,
