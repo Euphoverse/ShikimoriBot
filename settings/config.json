@@ -1,5 +1,5 @@
 {
-    "mode": "prod",
+    "mode": "test",
     "db_defaults": {
         "users": {
             "level": 1,

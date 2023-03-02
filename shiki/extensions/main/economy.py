@@ -34,9 +34,12 @@ import hikari
 from shiki.utils import db, tools, embeds
 import shiki
 import os
+from .ui import shop as uishop
 
 
 cfg = tools.load_data('./settings/config')
+crystals = tools.load_data('./settings/crystals')
+crystals_emoji = crystals['emoji']
 users = db.connect().get_database(os.environ['db']).get_collection('users')
 plugin = lightbulb.Plugin("Economy")
 currency_emoji = cfg['emojis']['currency']
@@ -212,7 +215,18 @@ async def daily(ctx: lightbulb.SlashContext):
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def shop(ctx: lightbulb.SlashContext):
-    ...
+    view = uishop.ShopView(plugin)
+    em = hikari.Embed(
+        title='shop wip',
+        color=shiki.Colors.SPONSOR
+    )
+    for item in crystals['shop'].values():
+        em.add_field(
+            item['display'],
+            f"{item['cost']} {crystals_emoji}"
+        )
+    msg = await (await ctx.respond(embed=em, components=view)).message()
+    await view.start(msg)
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)

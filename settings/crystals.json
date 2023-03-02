@@ -1,27 +1,30 @@
 {
-    "1m_nitro": {
-        "display": "Дискорд Нитро (1 месяц)",
-        "cost": 10,
-        "action": "mods_chat"
+    "shop": {
+        "1m_nitro": {
+            "display": "Дискорд Нитро (1 месяц)",
+            "cost": 10,
+            "action": "mods_chat"
+        },
+        "1m_supporter": {
+            "display": "osu!supporter (1 месяц)",
+            "cost": 12,
+            "action": "mods_chat"
+        },
+        "300_qiwi": {
+            "display": "300 рублей (QIWI)",
+            "cost": 9,
+            "action": "mods_chat"
+        },
+        "150_qiwi": {
+            "display": "150 рублей (QIWI)",
+            "cost": 7,
+            "action": "mods_chat"
+        },
+        "why": {
+            "display": "1млн. рублей (QIWI)",
+            "cost": 999999999,
+            "action": "ban"
+        }
     },
-    "1m_supporter": {
-        "display": "osu!supporter (1 месяц)",
-        "cost": 12,
-        "action": "mods_chat"
-    },
-    "300_qiwi": {
-        "display": "300 рублей (QIWI)",
-        "cost": 9,
-        "action": "mods_chat"
-    },
-    "150_qiwi": {
-        "display": "150 рублей (QIWI)",
-        "cost": 7,
-        "action": "mods_chat"
-    },
-    "why": {
-        "display": "1млн. рублей (*QIWI*)",
-        "cost": 999999999,
-        "action": "ban"
-    }
+    "emoji": "<:crystals:1080861268799398029>"
 }
