@@ -53,23 +53,34 @@ def get_options() -> list:
 class ShopView(miru.View):
     def __init__(self, plugin, *args, **kwargs):
         self.plugin = plugin
-        super().__init__(timeout=10, *args, **kwargs)
+        super().__init__(timeout=120, *args, **kwargs)
 
     @miru.select(
         placeholder="Хотите что-то приобрести?",
         options=get_options()
     )
     async def buy_select(self, select: miru.Select, ctx: miru.ViewContext):
-        data = db.find_document(users, {'_id': ctx.user.id})
-        if data["crystals"] < int(select.values[0]):
-            return await ctx.respond("haha no\nu poor", flags=hikari.MessageFlag.EPHEMERAL)
-        
         item = None
         for i in crystals['shop'].values():
             if str(i['cost']) == select.values[0]:
                 item = i
                 break
-        sure_msg = await ctx.respond(f"u sure you want to buy {item['display']}?\nY/N", flags=hikari.MessageFlag.EPHEMERAL)
+        
+        data = db.find_document(users, {'_id': ctx.user.id})
+        if data["crystals"] < int(select.values[0]):
+            return await ctx.respond(embed=hikari.Embed(
+                title="Недостаточно средств",
+                description=f"Вам не хватает {item['cost'] - data['crystals']}{crystals['emoji']} для покупки {item['display']} <:zerotwo_bored:1027903070572662834>",
+                color=shiki.Colors.ERROR
+            ), flags=hikari.MessageFlag.EPHEMERAL)
+        
+        sure_msg = await ctx.respond(embed=hikari.Embed(
+                title="Подтверждение",
+                description="Вы уверены, что хотите приобрести следующий товар?",
+                color=shiki.Colors.WARNING
+            )
+            .add_field(f"{item['display']} {item['cost']}{crystals['emoji']}", "Да/Нет"), flags=hikari.MessageFlag.EPHEMERAL
+        )
 
         def check():
             return event.author_id == ctx.user.id and event.channel_id == ctx.channel_id
@@ -86,11 +97,29 @@ class ShopView(miru.View):
         resp = event.message.content
         await event.message.delete()
 
-        if resp.lower() not in ['y', 'ye', 'yes', 'д', 'да']:
-            return await ctx.respond('транс отменён. погодите что', flags=hikari.MessageFlag.EPHEMERAL)
+        if resp.lower() in ['y', 'ye', 'yes', 'д', 'да']:
+            data["crystals"] -= item['cost']
+            db.update_document(users, {'_id': ctx.user.id}, {"crystals": data["crystals"]})
+            await ctx.respond(embed=hikari.Embed(
+                title="Транзакция",
+                description=f"Вы успешно приобрели ``{item['display']}`` за **{item['cost']}{crystals['emoji']}**\nК вам скоро обратиться администрация, ожидайте <:zerotwo_heart:1027903079410044958>",
+                color=shiki.Colors.SPONSOR
+            ), flags=hikari.MessageFlag.EPHEMERAL)
+
+            await self.plugin.bot.rest.create_message(
+                cfg[cfg['mode']]['channels']['mods_only'],
+                f"<@{cfg[cfg['mode']]['users']['shop_manager']}>",
+                embed=hikari.Embed(
+                    title="Покупка в магазине кристаллов",
+                    description=f"Пользователь `{ctx.user}` (`{ctx.user.id}`) приобрёл **``{item['display']}``**",
+                    color=shiki.Colors.SPONSOR
+                ),
+                user_mentions=True
+            )
+            return
         
-        await ctx.respond('ок бро без проблем', flags=hikari.MessageFlag.EPHEMERAL)
-    
-    async def on_timeout(self) -> None:
-        for c in self.children:
-            c.disabled = True
+        await ctx.respond(embed=hikari.Embed(
+            title="Транзакция",
+            description=f"Покупка отменена.",
+            color=shiki.Colors.WAIT
+        ), flags=hikari.MessageFlag.EPHEMERAL)

@@ -35,6 +35,7 @@ import os
 
 
 cfg = tools.load_data('./settings/config')
+crystals = tools.load_data('./settings/crystals')
 achievements = tools.load_data('./settings/achievements')
 tags = tools.load_data('./settings/tags')
 users = db.connect().get_database(os.environ['db']).get_collection('users')
@@ -57,7 +58,6 @@ async def admin(ctx: lightbulb.SlashContext):
 
 
 @admin.child
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Получатель халявы',
@@ -73,7 +73,8 @@ async def admin(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'increase',
     'Выдать пользователю деньги',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def add_money(ctx: lightbulb.SlashContext):
@@ -94,7 +95,6 @@ async def add_money(ctx: lightbulb.SlashContext):
 
 
 @admin.child
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Жертва',
@@ -104,7 +104,8 @@ async def add_money(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'reset',
     'Обнулить статистику пользователя',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def reset_user(ctx: lightbulb.SlashContext):
@@ -153,7 +154,6 @@ async def reset_user(ctx: lightbulb.SlashContext):
 
 
 @admin.child()
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Пользователь',
@@ -169,7 +169,8 @@ async def reset_user(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'revoke',
     'Удалить ачивку у пользователя',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def remove_achievement(ctx: lightbulb.SlashContext):
@@ -185,7 +186,6 @@ async def remove_achievement(ctx: lightbulb.SlashContext):
 
 
 @admin.child()
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Пользователь',
@@ -202,7 +202,8 @@ async def remove_achievement(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'grant',
     'Выдать ачивку пользователю',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def give_achievement(ctx: lightbulb.SlashContext):
@@ -226,7 +227,6 @@ async def give_achievement(ctx: lightbulb.SlashContext):
 
 
 @admin.child()
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Пользователь',
@@ -236,7 +236,8 @@ async def give_achievement(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'view',
     'Узнать информацию о пользователе',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def get_info(ctx: lightbulb.SlashContext):
@@ -269,7 +270,6 @@ async def get_info(ctx: lightbulb.SlashContext):
 
 
 @admin.child()
-@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg['mode']]['roles']['admin']))
 @lightbulb.option(
     'user',
     'Пользователь',
@@ -292,7 +292,8 @@ async def get_info(ctx: lightbulb.SlashContext):
 @lightbulb.command(
     'tag',
     'Операции с тегами',
-    auto_defer=True
+    auto_defer=True,
+    inherit_checks=True
 )
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def give_achievement(ctx: lightbulb.SlashContext):
@@ -358,6 +359,45 @@ async def give_achievement(ctx: lightbulb.SlashContext):
             ).set_footer(text='Выдача тегов', icon=ctx.author.display_avatar_url.url))
     
     db.update_document(users, {'_id': user.id}, {'tags': data['tags']})
+
+
+@admin.child()
+@lightbulb.option(
+    'user',
+    'Пользователь',
+    hikari.Member,
+    required=False
+)
+@lightbulb.option(
+    'amount',
+    'Количество выдаваемых кристаллов',
+    int,
+    required=True
+)
+@lightbulb.command(
+    'add_crystals',
+    'Выдать кристаллы пользователю',
+    auto_defer=True,
+    inherit_checks=True
+)
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def add_crystals(ctx: lightbulb.SlashContext):
+    amount = ctx.options.amount
+    user = ctx.options.user
+    if user == None:
+        user = ctx.user
+    if user.is_bot:
+        return ctx.respond(embed=embeds.user_is_bot())
+    data = db.find_document(users, {'_id': user.id})
+    if data == None:
+        return ctx.respond(embed=embeds.user_not_found())
+    data['crystals'] += amount
+    db.update_document(users, {'_id': user.id}, {'crystals': data['crystals']})
+    return await ctx.respond(embed=hikari.Embed(
+        title="Успешно!",
+        description=f"Пользователю ``{user}`` было начислено **{amount}**{crystals['emoji']}!",
+        color=shiki.Colors.SUCCESS
+    ))
 
 
 def load(bot):

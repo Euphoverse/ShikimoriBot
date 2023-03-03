@@ -217,9 +217,10 @@ async def daily(ctx: lightbulb.SlashContext):
 async def shop(ctx: lightbulb.SlashContext):
     view = uishop.ShopView(plugin)
     em = hikari.Embed(
-        title='shop wip',
+        title='Магазин кристаллов',
+        description='Список товаров:',
         color=shiki.Colors.SPONSOR
-    )
+    ).set_footer('(!) Кристаллы можно получить только на ивентах и раздачах')
     for item in crystals['shop'].values():
         em.add_field(
             item['display'],

@@ -38,6 +38,8 @@ users = db.connect().get_database(os.environ['db']).get_collection('users')
 cfg = tools.load_data('./settings/config')
 emoji_denied = cfg['emojis']['access_denied']
 currency_emoji = cfg['emojis']['currency']
+crystals = tools.load_data('./settings/crystals')
+crystals_emoji = crystals['emoji']
 
 
 def profile(user: User, author: User):
@@ -64,7 +66,8 @@ def profile(user: User, author: User):
     em.add_field('Уровень', f"```{data['level']}```", inline=True)
     em.add_field('Опыт', '```%s/%s```' %
                 (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
-    em.add_field('Баланс', f'```{data["money"]}{currency_emoji}```', inline=True)
+    em.add_field(f'Баланс{currency_emoji}', f'```{data["money"]}```', inline=True)
+    em.add_field(f'Кристаллы{crystals_emoji}', f'**```{data["crystals"]}```**', inline=True)
     em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
 
     _tags = tools.get_tag_names(user.id)
