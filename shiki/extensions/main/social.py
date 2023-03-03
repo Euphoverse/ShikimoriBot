@@ -33,26 +33,17 @@ import shiki
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("Social")
-currency_emoji = cfg['emojis']['currency']
-emoji_denied = cfg['emojis']['access_denied']
+currency_emoji = cfg["emojis"]["currency"]
+emoji_denied = cfg["emojis"]["access_denied"]
 
 
 @plugin.command
-@lightbulb.option(
-    'user',
-    'Пользователь',
-    hikari.Member,
-    required=False
-)
-@lightbulb.command(
-    'profile',
-    'Просмотреть профиль пользователя',
-    auto_defer=True
-)
+@lightbulb.option("user", "Пользователь", hikari.Member, required=False)
+@lightbulb.command("profile", "Просмотреть профиль пользователя", auto_defer=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def profile(ctx: lightbulb.SlashContext):
     if ctx.options.user is None:
@@ -63,78 +54,79 @@ async def profile(ctx: lightbulb.SlashContext):
 
 
 @plugin.command
-@lightbulb.command(
-    'Профиль пользователя',
-    'Просомтреть профиль пользователя'
-)
+@lightbulb.command("Профиль пользователя", "Просомтреть профиль пользователя")
 @lightbulb.implements(lightbulb.UserCommand)
 async def profile_user(ctx: lightbulb.UserContext):
     ctx.user
     await ctx.respond(
         embed=embeds.profile(ctx.options.target, ctx.author),
-        flags=hikari.MessageFlag.EPHEMERAL
+        flags=hikari.MessageFlag.EPHEMERAL,
     )
 
 
 @plugin.command
 @lightbulb.option(
-    'type',
-    'Тип списка',
+    "type",
+    "Тип списка",
     str,
     required=True,
-    choices=['xp', 'money', 'donated', 'invites', 'time_in_vc']
+    choices=["xp", "money", "donated", "invites", "time_in_vc"],
 )
-@lightbulb.command(
-    'leaderboard',
-    'Список лидеров',
-    auto_defer=True
-)
+@lightbulb.command("leaderboard", "Список лидеров", auto_defer=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def leaderboard(ctx: lightbulb.SlashContext):
-    """ Data sort """
-    if ctx.options.type == 'time_in_vc':
+    """Data sort"""
+    if ctx.options.type == "time_in_vc":
         all_data = db.find_document(stats, {}, multiple=True)
     else:
         all_data = db.find_document(users, {}, multiple=True)
     data = {}
     type = ctx.options.type
     for sdata in all_data:
-        if sdata[type] != 0: 
-            data[sdata['_id']] = sdata[type]
+        if sdata[type] != 0:
+            data[sdata["_id"]] = sdata[type]
     data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
 
     """ Embed construction """
     em = hikari.Embed(
-        title=f'Список лидеров по `{type}`',
-        color=shiki.Colors.SUCCESS
-    ).set_footer(text=f'Запросил {ctx.author.username}',
-                 icon=ctx.author.display_avatar_url.url)
+        title=f"Список лидеров по `{type}`", color=shiki.Colors.SUCCESS
+    ).set_footer(
+        text=f"Запросил {ctx.author.username}", icon=ctx.author.display_avatar_url.url
+    )
     index = 1
     guild = ctx.get_guild()
-    suff = ''
-    if type == 'money': suff = currency_emoji
+    suff = ""
+    if type == "money":
+        suff = currency_emoji
     for user_id in list(data)[:10]:
         user = guild.get_member(user_id)
-        if user == None: 
-            username = f'(пользователь вышел)'
-        else: 
+        if user == None:
+            username = f"(пользователь вышел)"
+        else:
             username = user.username
-        pref = ''
-        if type == 'xp': suff = f' | **Level**: {tools.calc_lvl(data[user_id])}'
-        if type == 'time_in_vc':
+        pref = ""
+        if type == "xp":
+            suff = f" | **Level**: {tools.calc_lvl(data[user_id])}"
+        if type == "time_in_vc":
             vc_time = data[user_id]
             hh = round(vc_time // 3600)
             mm = round((vc_time // 60) % 60)
             ss = round(vc_time % 60)
-            if(mm < 10): mm = f'0{mm}'
-            if(ss < 10): ss = f'0{ss}'
-            data[user_id] = f'{hh}:{mm}:{ss}'
-        pref = f'#{index}'
-        if index == 1: pref = "🥇 "
-        if index == 2: pref = "🥈 "
-        if index == 3: pref = "🥉 "
-        em.add_field(f'**{pref} {username}**',
-                     f'**{type.capitalize()}**: {data[user_id]}{suff}')
+            if mm < 10:
+                mm = f"0{mm}"
+            if ss < 10:
+                ss = f"0{ss}"
+            data[user_id] = f"{hh}:{mm}:{ss}"
+        pref = f"#{index}"
+        if index == 1:
+            pref = "🥇 "
+        if index == 2:
+            pref = "🥈 "
+        if index == 3:
+            pref = "🥉 "
+        em.add_field(
+            f"**{pref} {username}**", f"**{type.capitalize()}**: {data[user_id]}{suff}"
+        )
         index += 1
     await ctx.respond(em)
 

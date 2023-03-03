@@ -36,10 +36,10 @@ import string
 import os
 
 
-cfg = tools.load_data('./settings/config')
-achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+achievements = tools.load_data("./settings/achievements")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("AchieveStatistic")
 
 vc_tmp = {}
@@ -51,114 +51,114 @@ async def message_created(ctx: hikari.GuildMessageCreateEvent):
     if user.is_bot:
         return
 
-    data = db.find_document(stats, {'_id': user.id})
+    data = db.find_document(stats, {"_id": user.id})
     if data == None:
         return
 
-    data['messages_total'] += 1
-    if data['messages_total'] == 1:
-        await tools.grant_achievement(user, '0')
+    data["messages_total"] += 1
+    if data["messages_total"] == 1:
+        await tools.grant_achievement(user, "0")
 
-    data['messages_today'] += 1
-    if data['messages_date'] == None:
-        data['messages_date'] = time.time() // 86400
-    if time.time() // 86400 - data['messages_date'] >= 1:
-        data['messages_date'] = time.time() // 86400
-        data['messages_today'] = 1
-    if data['messages_today'] == 100:
-        await tools.grant_achievement(user, '1')
+    data["messages_today"] += 1
+    if data["messages_date"] == None:
+        data["messages_date"] = time.time() // 86400
+    if time.time() // 86400 - data["messages_date"] >= 1:
+        data["messages_date"] = time.time() // 86400
+        data["messages_today"] = 1
+    if data["messages_today"] == 100:
+        await tools.grant_achievement(user, "1")
 
     if ctx.content != None:
         for s in string.ascii_lowercase:
             if s in ctx.content:
-                await tools.grant_achievement(user, '2')
+                await tools.grant_achievement(user, "2")
                 break
 
     time_since_join = datetime.now(tz=timezone.utc) - ctx.member.joined_at
     if time_since_join.days >= 3:
-        asyncio.create_task(tools.grant_achievement(user, '49'))
+        asyncio.create_task(tools.grant_achievement(user, "49"))
 
-    db.update_document(stats, {'_id': user.id}, data)
+    db.update_document(stats, {"_id": user.id}, data)
 
 
 @plugin.listener(hikari.VoiceStateUpdateEvent)
 async def state_update(event: hikari.VoiceStateUpdateEvent):
-    if event.state.guild_id != cfg[cfg['mode']]['guild']:
+    if event.state.guild_id != cfg[cfg["mode"]]["guild"]:
         return
     if event.state.channel_id is not None:
-        await tools.grant_achievement(event.state.user_id, '3', plugin.bot.rest)
+        await tools.grant_achievement(event.state.user_id, "3", plugin.bot.rest)
 
     state = event.state
     if state.user_id not in vc_tmp:
         vc_tmp[state.user_id] = datetime.now()
         return
-    
+
     if state.channel_id is None:
-        data = db.find_document(stats, {'_id': state.user_id})
-        if data is None: 
+        data = db.find_document(stats, {"_id": state.user_id})
+        if data is None:
             return
         tm: timedelta
-        if data['time_in_vc'] is None:
+        if data["time_in_vc"] is None:
             tm = datetime.now() - vc_tmp.pop(state.user_id)
         else:
-            tm = timedelta(seconds=data['time_in_vc']) + (datetime.now() - vc_tmp.pop(state.user_id))
-        
-        db.update_document(stats, {'_id': state.user_id}, {'time_in_vc': tm.total_seconds()})
+            tm = timedelta(seconds=data["time_in_vc"]) + (
+                datetime.now() - vc_tmp.pop(state.user_id)
+            )
+
+        db.update_document(
+            stats, {"_id": state.user_id}, {"time_in_vc": tm.total_seconds()}
+        )
 
         s = tm.total_seconds()
         if s > 600:
-            await tools.grant_achievement(state.user_id, 
-                                    '5', plugin.app.rest)
+            await tools.grant_achievement(state.user_id, "5", plugin.app.rest)
 
         if s > 7200:
-            await tools.grant_achievement(state.user_id, 
-                                    '6', plugin.app.rest)
+            await tools.grant_achievement(state.user_id, "6", plugin.app.rest)
 
         if s > 43_200:
-            await tools.grant_achievement(state.user_id, 
-                                    '7', plugin.app.rest)
+            await tools.grant_achievement(state.user_id, "7", plugin.app.rest)
 
         if s > 86_400:
-            await tools.grant_achievement(state.user_id, 
-                                    '8', plugin.app.rest)
+            await tools.grant_achievement(state.user_id, "8", plugin.app.rest)
 
         if s > 3_240_000:
-            await tools.grant_achievement(state.user_id, 
-                                    '9', plugin.app.rest)
-    
+            await tools.grant_achievement(state.user_id, "9", plugin.app.rest)
+
     if state.is_streaming == True:
-        await tools.grant_achievement(event.state.user_id, '36', plugin.bot.rest)
+        await tools.grant_achievement(event.state.user_id, "36", plugin.bot.rest)
 
     if state.is_video_enabled == True:
-        await tools.grant_achievement(event.state.user_id, '10', plugin.bot.rest)
-    
-    if event.old_state != None and event.old_state.is_suppressed == True and state.is_suppressed == False:
-        await tools.grant_achievement(event.state.user_id, '45', plugin.bot.rest)
-    
+        await tools.grant_achievement(event.state.user_id, "10", plugin.bot.rest)
 
+    if (
+        event.old_state != None
+        and event.old_state.is_suppressed == True
+        and state.is_suppressed == False
+    ):
+        await tools.grant_achievement(event.state.user_id, "45", plugin.bot.rest)
 
 
 @plugin.listener(hikari.StoppingEvent)
 async def stopping(event: hikari.StoppingEvent):
     now = datetime.now()
-    if vc_tmp is None: return
+    if vc_tmp is None:
+        return
     for u in vc_tmp:
-        tm = db.find_document(stats, {'_id': u})['time_in_vc']
+        tm = db.find_document(stats, {"_id": u})["time_in_vc"]
         if tm is None:
             tm = timedelta(seconds=0)
         else:
-            tm = timedelta(
-                seconds=tm
-            )
+            tm = timedelta(seconds=tm)
 
-        db.update_document(stats, {'_id': u}, {
-            'time_in_vc': (tm + now - vc_tmp[u]).total_seconds()
-        })
+        db.update_document(
+            stats, {"_id": u}, {"time_in_vc": (tm + now - vc_tmp[u]).total_seconds()}
+        )
 
 
 @plugin.listener(hikari.ShardReadyEvent)
 async def ready(event: hikari.ShardReadyEvent):
-    guild = await plugin.bot.rest.fetch_guild(cfg[cfg['mode']]['guild'])
+    guild = await plugin.bot.rest.fetch_guild(cfg[cfg["mode"]]["guild"])
     for u in guild.get_voice_states():
         vc_tmp[u] = datetime.now()
 

@@ -33,46 +33,48 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+achievements = tools.load_data("./settings/achievements")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("AchievePresence")
 
 
 @plugin.listener(hikari.PresenceUpdateEvent)
 async def update(ctx: hikari.PresenceUpdateEvent):
-    if ctx.guild_id != cfg[cfg['mode']]['guild']: return
+    if ctx.guild_id != cfg[cfg["mode"]]["guild"]:
+        return
     user = await ctx.fetch_user()
-    if user.is_bot: return
+    if user.is_bot:
+        return
     await activity_check(ctx.presence, user)
 
 
 @plugin.listener(hikari.ShardReadyEvent)
 async def ready(ctx: hikari.ShardReadyEvent):
-    members = await plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild'])
+    members = await plugin.bot.rest.fetch_members(cfg[cfg["mode"]]["guild"])
     for m in members:
-        if m.is_bot: continue
+        if m.is_bot:
+            continue
         asyncio.create_task(activity_check(m.get_presence(), m))
 
 
 async def activity_check(presence, user):
-    if presence == None: return
+    if presence == None:
+        return
 
-    if len(presence.activities) != 0: 
+    if len(presence.activities) != 0:
         game = presence.activities[0].name
         if game == "Dota 2":
-            asyncio.create_task(tools.grant_achievement(user, '20'))
+            asyncio.create_task(tools.grant_achievement(user, "20"))
         if game == "osu!":
-            asyncio.create_task(tools.grant_achievement(user, '21'))
+            asyncio.create_task(tools.grant_achievement(user, "21"))
         if game == "League of Legends":
-            asyncio.create_task(tools.grant_achievement(user, '22'))
-        if game == "Minecraft" or\
-           game == "Lunar Client" or\
-           game == "LabyMod":
-            asyncio.create_task(tools.grant_achievement(user, '23'))
-        if game == 'Escape from Tarkov':
-            asyncio.create_task(tools.grant_achievement(user, '26'))
+            asyncio.create_task(tools.grant_achievement(user, "22"))
+        if game == "Minecraft" or game == "Lunar Client" or game == "LabyMod":
+            asyncio.create_task(tools.grant_achievement(user, "23"))
+        if game == "Escape from Tarkov":
+            asyncio.create_task(tools.grant_achievement(user, "26"))
 
 
 def load(bot):

@@ -32,8 +32,8 @@ import hikari
 from shiki.utils import db, tools
 
 
-cfg = tools.load_data('./settings/config')
-posts = tools.load_data('./settings/post_suggestions')
+cfg = tools.load_data("./settings/config")
+posts = tools.load_data("./settings/post_suggestions")
 plugin = lightbulb.Plugin("PostSuggestionsCreatePost")
 
 
@@ -45,22 +45,23 @@ async def on_reaction(event: hikari.ReactionAddEvent):
         if s["review"][cfg["mode"]] == event.channel_id:
             post = s
             break
-    else: # Runs if loop wasn't breaked
+    else:  # Runs if loop wasn't breaked
         return
 
     mg = await plugin.bot.rest.fetch_message(event.channel_id, event.message_id)
-    if event.is_for_emoji('🟩'):
-        author_id = hikari.Snowflake(mg.content.split('\n')[3].split(' ')[2])
+    if event.is_for_emoji("🟩"):
+        author_id = hikari.Snowflake(mg.content.split("\n")[3].split(" ")[2])
         await plugin.bot.rest.create_message(
-            post['post'][cfg['mode']],
-            '`🖌️ %s`\n`👤 Модератор: %s`\n%s' % (
-                mg.content.split('\n')[2],
-                plugin.bot.cache.get_member(mg.content.split('\n')[0], event.user_id),
-                '\n'.join(mg.content.split('\n')[4:])
-            )
+            post["post"][cfg["mode"]],
+            "`🖌️ %s`\n`👤 Модератор: %s`\n%s"
+            % (
+                mg.content.split("\n")[2],
+                plugin.bot.cache.get_member(mg.content.split("\n")[0], event.user_id),
+                "\n".join(mg.content.split("\n")[4:]),
+            ),
         )
-        await tools.grant_achievement(author_id, '50', plugin.bot.rest)
-        
+        await tools.grant_achievement(author_id, "50", plugin.bot.rest)
+
 
 def load(bot):
     bot.add_plugin(plugin)

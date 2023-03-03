@@ -33,17 +33,13 @@ from .ui import embed
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("MediaBroadcasts")
 
 
 @plugin.command
-@lightbulb.command(
-    'media',
-    'Команды связанные с медиа',
-    auto_defer=True
-)
+@lightbulb.command("media", "Команды связанные с медиа", auto_defer=True)
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def media(ctx: lightbulb.SlashContext):
     # Command group /media
@@ -51,28 +47,20 @@ async def media(ctx: lightbulb.SlashContext):
 
 
 @media.child
-@lightbulb.add_checks(
-    lightbulb.has_roles(cfg[cfg['mode']]['roles']['p:create_embed'])
-)
+@lightbulb.add_checks(lightbulb.has_roles(cfg[cfg["mode"]]["roles"]["p:create_embed"]))
 @lightbulb.option(
-    'channel',
-    'Канал в котором будет опубликовано сообщение',
+    "channel",
+    "Канал в котором будет опубликовано сообщение",
     hikari.TextableGuildChannel,
-    required=True
+    required=True,
 )
-@lightbulb.command(
-    'new_embed',
-    'Создать новое embed-сообщение'
-)
+@lightbulb.command("new_embed", "Создать новое embed-сообщение")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def new_embed(ctx: lightbulb.SlashContext):
     view = embed.EmbedConstructor(ctx.options.channel.id, timeout=600)
-    msg = await (await ctx.respond(
-        embed=hikari.Embed(
-            title='Нет заголовка'
-        ),
-        components=view
-    )).message()
+    msg = await (
+        await ctx.respond(embed=hikari.Embed(title="Нет заголовка"), components=view)
+    ).message()
     await view.start(msg)
 
 

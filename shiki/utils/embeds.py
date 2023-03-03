@@ -34,76 +34,93 @@ import shiki
 import os
 
 
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-cfg = tools.load_data('./settings/config')
-emoji_denied = cfg['emojis']['access_denied']
-currency_emoji = cfg['emojis']['currency']
-crystals = tools.load_data('./settings/crystals')
-crystals_emoji = crystals['emoji']
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+cfg = tools.load_data("./settings/config")
+emoji_denied = cfg["emojis"]["access_denied"]
+currency_emoji = cfg["emojis"]["currency"]
+crystals = tools.load_data("./settings/crystals")
+crystals_emoji = crystals["emoji"]
 
 
 def profile(user: User, author: User):
     if user.is_bot:
         return user_is_bot()
-    data = db.find_document(users, {'_id': user.id})
+    data = db.find_document(users, {"_id": user.id})
     if data == None:
         return user_not_found()
-    if data['money'] == 555 and user.id == author.id: 
-        asyncio.create_task(tools.grant_achievement(user, '18'))
-    if data['money'] > 10000 and user.id == author.id:
-        asyncio.create_task(tools.grant_achievement(user, '19'))
+    if data["money"] == 555 and user.id == author.id:
+        asyncio.create_task(tools.grant_achievement(user, "18"))
+    if data["money"] > 10000 and user.id == author.id:
+        asyncio.create_task(tools.grant_achievement(user, "19"))
     em = Embed(
-        title=f'Профиль пользователя {user.username}',
-        color=shiki.Colors.SUCCESS if data['sponsor']['duration'] is None else shiki.Colors.SPONSOR
+        title=f"Профиль пользователя {user.username}",
+        color=shiki.Colors.SUCCESS
+        if data["sponsor"]["duration"] is None
+        else shiki.Colors.SPONSOR,
     )
-    em.set_footer(text=f'Запросил {author.username}',
-                icon=author.display_avatar_url.url)
+    em.set_footer(
+        text=f"Запросил {author.username}", icon=author.display_avatar_url.url
+    )
     em.set_thumbnail(user.display_avatar_url.url)
 
     em.add_field(
-        'Спонсорка', '```Отсутствует```' if data['sponsor']['duration'] is None else '```Активна до ' + (data['sponsor']['started'] + timedelta(data['sponsor']['duration'])).strftime('%d.%m.%Y') + '```')
-    em.add_field('Пожертвовано', f"```{data['donated']} рублей```", inline=True)
-    em.add_field('Уровень', f"```{data['level']}```", inline=True)
-    em.add_field('Опыт', '```%s/%s```' %
-                (round(data['xp']), round(tools.calc_xp(data['level'] + 1))), inline=True)
-    em.add_field(f'Баланс{currency_emoji}', f'```{data["money"]}```', inline=True)
-    em.add_field(f'Кристаллы{crystals_emoji}', f'**```{data["crystals"]}```**', inline=True)
-    em.add_field('Приглашений', f"```{data['invites']}```", inline=True)
+        "Спонсорка",
+        "```Отсутствует```"
+        if data["sponsor"]["duration"] is None
+        else "```Активна до "
+        + (
+            data["sponsor"]["started"] + timedelta(data["sponsor"]["duration"])
+        ).strftime("%d.%m.%Y")
+        + "```",
+    )
+    em.add_field("Пожертвовано", f"```{data['donated']} рублей```", inline=True)
+    em.add_field("Уровень", f"```{data['level']}```", inline=True)
+    em.add_field(
+        "Опыт",
+        "```%s/%s```" % (round(data["xp"]), round(tools.calc_xp(data["level"] + 1))),
+        inline=True,
+    )
+    em.add_field(f"Баланс{currency_emoji}", f'```{data["money"]}```', inline=True)
+    em.add_field(
+        f"Кристаллы{crystals_emoji}", f'**```{data["crystals"]}```**', inline=True
+    )
+    em.add_field("Приглашений", f"```{data['invites']}```", inline=True)
 
     _tags = tools.get_tag_names(user.id)
-    if len(_tags) < 1: _tags = ['Тегов нет']
-    em.add_field('Теги', f'**{"**,** ".join(_tags)}**', inline=False)
+    if len(_tags) < 1:
+        _tags = ["Тегов нет"]
+    em.add_field("Теги", f'**{"**,** ".join(_tags)}**', inline=False)
 
     return em
 
 
 def user_not_found():
     return Embed(
-        title='Ошибка',
-        description='Пользователя нет в базе данных!',
-        color=shiki.Colors.ERROR
-    ).set_footer(text=f'{emoji_denied} Пользователь не найден')
+        title="Ошибка",
+        description="Пользователя нет в базе данных!",
+        color=shiki.Colors.ERROR,
+    ).set_footer(text=f"{emoji_denied} Пользователь не найден")
 
 
 def user_is_bot():
     return Embed(
-        title='Ошибка',
-        description='К ботам не применимы команды!',
-        color=shiki.Colors.ERROR
-    ).set_footer(text=f'{emoji_denied} Некорректные данные')
+        title="Ошибка",
+        description="К ботам не применимы команды!",
+        color=shiki.Colors.ERROR,
+    ).set_footer(text=f"{emoji_denied} Некорректные данные")
 
 
 def user_has_tag():
     return Embed(
-        title='Ошибка',
-        description='Тег уже имеется у пользователя',
-        color=shiki.Colors.ERROR
-    ).set_footer(text=f'{emoji_denied} Теги')
+        title="Ошибка",
+        description="Тег уже имеется у пользователя",
+        color=shiki.Colors.ERROR,
+    ).set_footer(text=f"{emoji_denied} Теги")
 
 
 def user_has_no_tag():
     return Embed(
-        title='Ошибка',
-        description='Тег отсутствует у пользователя',
-        color=shiki.Colors.ERROR
-    ).set_footer(text=f'{emoji_denied} Теги')
+        title="Ошибка",
+        description="Тег отсутствует у пользователя",
+        color=shiki.Colors.ERROR,
+    ).set_footer(text=f"{emoji_denied} Теги")

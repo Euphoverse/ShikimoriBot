@@ -33,93 +33,104 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-crystals = tools.load_data('./settings/crystals')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+crystals = tools.load_data("./settings/crystals")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 
 
 def get_options() -> list:
     options = []
-    for item in crystals['shop'].values():
+    for item in crystals["shop"].values():
         options.append(
             miru.SelectOption(
-                label=item['display'],
-                value=str(item['cost']),
-                description="Цена: " + str(item['cost']) + " кристаллов"
+                label=item["display"],
+                value=str(item["cost"]),
+                description="Цена: " + str(item["cost"]) + " кристаллов",
             )
         )
     return options
+
 
 class ShopView(miru.View):
     def __init__(self, plugin, *args, **kwargs):
         self.plugin = plugin
         super().__init__(timeout=120, *args, **kwargs)
 
-    @miru.select(
-        placeholder="Хотите что-то приобрести?",
-        options=get_options()
-    )
+    @miru.select(placeholder="Хотите что-то приобрести?", options=get_options())
     async def buy_select(self, select: miru.Select, ctx: miru.ViewContext):
         item = None
-        for i in crystals['shop'].values():
-            if str(i['cost']) == select.values[0]:
+        for i in crystals["shop"].values():
+            if str(i["cost"]) == select.values[0]:
                 item = i
                 break
-        
-        data = db.find_document(users, {'_id': ctx.user.id})
+
+        data = db.find_document(users, {"_id": ctx.user.id})
         if data["crystals"] < int(select.values[0]):
-            return await ctx.respond(embed=hikari.Embed(
-                title="Недостаточно средств",
-                description=f"Вам не хватает {item['cost'] - data['crystals']}{crystals['emoji']} для покупки {item['display']} <:zerotwo_bored:1027903070572662834>",
-                color=shiki.Colors.ERROR
-            ), flags=hikari.MessageFlag.EPHEMERAL)
-        
-        sure_msg = await ctx.respond(embed=hikari.Embed(
+            return await ctx.respond(
+                embed=hikari.Embed(
+                    title="Недостаточно средств",
+                    description=f"Вам не хватает {item['cost'] - data['crystals']}{crystals['emoji']} для покупки {item['display']} <:zerotwo_bored:1027903070572662834>",
+                    color=shiki.Colors.ERROR,
+                ),
+                flags=hikari.MessageFlag.EPHEMERAL,
+            )
+
+        sure_msg = await ctx.respond(
+            embed=hikari.Embed(
                 title="Подтверждение",
                 description="Вы уверены, что хотите приобрести следующий товар?",
-                color=shiki.Colors.WARNING
-            )
-            .add_field(f"{item['display']} {item['cost']}{crystals['emoji']}", "Да/Нет"), flags=hikari.MessageFlag.EPHEMERAL
+                color=shiki.Colors.WARNING,
+            ).add_field(
+                f"{item['display']} {item['cost']}{crystals['emoji']}", "Да/Нет"
+            ),
+            flags=hikari.MessageFlag.EPHEMERAL,
         )
 
         def check():
             return event.author_id == ctx.user.id and event.channel_id == ctx.channel_id
-        
+
         while True:
             event = await self.plugin.bot.wait_for(
-                hikari.GuildMessageCreateEvent,
-                timeout=10
+                hikari.GuildMessageCreateEvent, timeout=10
             )
             if check():
                 break
-        
+
         await sure_msg.delete()
         resp = event.message.content
         await event.message.delete()
 
-        if resp.lower() in ['y', 'ye', 'yes', 'д', 'да']:
-            data["crystals"] -= item['cost']
-            db.update_document(users, {'_id': ctx.user.id}, {"crystals": data["crystals"]})
-            await ctx.respond(embed=hikari.Embed(
-                title="Транзакция",
-                description=f"Вы успешно приобрели ``{item['display']}`` за **{item['cost']}{crystals['emoji']}**\nК вам скоро обратиться администрация, ожидайте <:zerotwo_heart:1027903079410044958>",
-                color=shiki.Colors.SPONSOR
-            ), flags=hikari.MessageFlag.EPHEMERAL)
+        if resp.lower() in ["y", "ye", "yes", "д", "да"]:
+            data["crystals"] -= item["cost"]
+            db.update_document(
+                users, {"_id": ctx.user.id}, {"crystals": data["crystals"]}
+            )
+            await ctx.respond(
+                embed=hikari.Embed(
+                    title="Транзакция",
+                    description=f"Вы успешно приобрели ``{item['display']}`` за **{item['cost']}{crystals['emoji']}**\nК вам скоро обратиться администрация, ожидайте <:zerotwo_heart:1027903079410044958>",
+                    color=shiki.Colors.SPONSOR,
+                ),
+                flags=hikari.MessageFlag.EPHEMERAL,
+            )
 
             await self.plugin.bot.rest.create_message(
-                cfg[cfg['mode']]['channels']['mods_only'],
+                cfg[cfg["mode"]]["channels"]["mods_only"],
                 f"<@{cfg[cfg['mode']]['users']['shop_manager']}>",
                 embed=hikari.Embed(
                     title="Покупка в магазине кристаллов",
                     description=f"Пользователь `{ctx.user}` (`{ctx.user.id}`) приобрёл **``{item['display']}``**",
-                    color=shiki.Colors.SPONSOR
+                    color=shiki.Colors.SPONSOR,
                 ),
-                user_mentions=True
+                user_mentions=True,
             )
             return
-        
-        await ctx.respond(embed=hikari.Embed(
-            title="Транзакция",
-            description=f"Покупка отменена.",
-            color=shiki.Colors.WAIT
-        ), flags=hikari.MessageFlag.EPHEMERAL)
+
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Транзакция",
+                description=f"Покупка отменена.",
+                color=shiki.Colors.WAIT,
+            ),
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )

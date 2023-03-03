@@ -31,8 +31,8 @@ import hikari
 from shiki.utils import db, tools
 
 
-cfg = tools.load_data('./settings/config')
-posts = tools.load_data('./settings/post_suggestions')
+cfg = tools.load_data("./settings/config")
+posts = tools.load_data("./settings/post_suggestions")
 plugin = lightbulb.Plugin("PostSuggestionsCreatePost")
 
 
@@ -44,50 +44,53 @@ async def on_message(event: hikari.MessageCreateEvent):
         if s["post"][cfg["mode"]] == event.channel_id:
             post = s
             break
-    else: # Runs if loop wasn't breaked
+    else:  # Runs if loop wasn't breaked
         return
     mg = event.message
     await mg.delete()
-    if post['type'] == 'message':
+    if post["type"] == "message":
         result = []
         if (
-            'image' in post['content_types']
-            or 'video' in post['content_types']
-            or 'any_file' in post['content_types']
+            "image" in post["content_types"]
+            or "video" in post["content_types"]
+            or "any_file" in post["content_types"]
         ) and len(mg.attachments) != 0:
-            
-            if 'any_file' not in post['content_types']:
-                valid_att = [a.url for a in mg.attachments if 
-                             any(t in a.media_type for t in post['content_types'])]
+            if "any_file" not in post["content_types"]:
+                valid_att = [
+                    a.url
+                    for a in mg.attachments
+                    if any(t in a.media_type for t in post["content_types"])
+                ]
             else:
                 valid_att = [a.url for a in mg.attachments]
 
             if len(valid_att) != 0:
                 result.extend(valid_att)
-        
-        if 'text' in post['content_types'] and mg.content is not None:
+
+        if "text" in post["content_types"] and mg.content is not None:
             result.append(mg.content)
-        
-        if 'link' in post['content_types'] and (
-            mg.content is not None and
-            mg.content.startswith('http')
+
+        if "link" in post["content_types"] and (
+            mg.content is not None and mg.content.startswith("http")
         ):
             result.append(mg.content)
-        
+
         if len(result) == 0:
             return
 
         nmg = await plugin.bot.rest.create_message(
-            post['review'][cfg['mode']],
-            '%s\nНовый пост в предложке <#%s>\nАвтор: %s\nID Автора: %s\n%s' % (
+            post["review"][cfg["mode"]],
+            "%s\nНовый пост в предложке <#%s>\nАвтор: %s\nID Автора: %s\n%s"
+            % (
                 mg.guild_id,
-                post['post'][cfg['mode']],
-                event.author, event.author_id,
-                '\n'.join(result)
-            )
+                post["post"][cfg["mode"]],
+                event.author,
+                event.author_id,
+                "\n".join(result),
+            ),
         )
 
-        await nmg.add_reaction('🟩')
+        await nmg.add_reaction("🟩")
 
 
 def load(bot):

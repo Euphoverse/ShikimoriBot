@@ -32,34 +32,39 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+achievements = tools.load_data("./settings/achievements")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("AchieveSlashcommands")
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def update(ctx: hikari.GuildMessageCreateEvent):
     # '/like' command listener ( DSMonitoring )
-    if ctx.author_id == 575776004233232386 and\
-       ctx.message.interaction != None and\
-       ctx.message.interaction.name == 'like':
-        await tools.grant_achievement(ctx.message.interaction.user, '37')
+    if (
+        ctx.author_id == 575776004233232386
+        and ctx.message.interaction != None
+        and ctx.message.interaction.name == "like"
+    ):
+        await tools.grant_achievement(ctx.message.interaction.user, "37")
 
     # '/play' command listener ( Hori )
-    if ctx.author_id == 1000700569507352636 and\
-       ctx.message.interaction != None and\
-       ctx.message.interaction.name == 'play':
+    if (
+        ctx.author_id == 1000700569507352636
+        and ctx.message.interaction != None
+        and ctx.message.interaction.name == "play"
+    ):
         user = ctx.message.interaction.user
-        data = db.find_document(stats, {'_id': user.id})
-        if data == None: return
-        data['play_uses'] += 1
-        if data['play_uses'] == 1:
-            await tools.grant_achievement(ctx.message.interaction.user, '38')
-        if data['play_uses'] == 150:
-            await tools.grant_achievement(ctx.message.interaction.user, '39')
-        db.update_document(stats, {'_id': user.id}, {'play_uses': data['play_uses']})
+        data = db.find_document(stats, {"_id": user.id})
+        if data == None:
+            return
+        data["play_uses"] += 1
+        if data["play_uses"] == 1:
+            await tools.grant_achievement(ctx.message.interaction.user, "38")
+        if data["play_uses"] == 150:
+            await tools.grant_achievement(ctx.message.interaction.user, "39")
+        db.update_document(stats, {"_id": user.id}, {"play_uses": data["play_uses"]})
 
 
 def load(bot):

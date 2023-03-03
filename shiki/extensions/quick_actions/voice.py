@@ -33,17 +33,20 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("QuickVoice")
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
-    if ctx.author.is_bot: return
-    if ctx.content == None: return
+    if ctx.author.is_bot:
+        return
+    if ctx.content == None:
+        return
     raw_content = ctx.content.lower()
-    if not raw_content.startswith('шики'): return
+    if not raw_content.startswith("шики"):
+        return
     content = tools.fetch_content(raw_content)
 
     reference_user = ctx.message.message_reference
@@ -52,40 +55,52 @@ async def message_sent(ctx: hikari.GuildMessageCreateEvent):
         reference_message = await ctx.get_channel().fetch_message(reference_id)
         reference_user = reference_message.author
         reference_state = ctx.get_guild().get_voice_state(reference_user)
-    
-    if content == 'move':
+
+    if content == "move":
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
-           cfg[cfg['mode']]['roles']['mod'] not in roles:
-           return
-        if reference_user == None: return
+        if (
+            cfg[cfg["mode"]]["roles"]["admin"] not in roles
+            and cfg[cfg["mode"]]["roles"]["mod"] not in roles
+        ):
+            return
+        if reference_user == None:
+            return
         author_state = ctx.get_guild().get_voice_state(ctx.author_id)
         if reference_state == None:
-            return await ctx.message.respond('%s не в ГК <:1720kannauhh:1028186197287247874>' % reference_user.mention,
-                                             reply=True)
+            return await ctx.message.respond(
+                "%s не в ГК <:1720kannauhh:1028186197287247874>"
+                % reference_user.mention,
+                reply=True,
+            )
         if author_state == None:
-            return await ctx.message.respond('Ты не в ГК <:9380fuminodepression3:1027509992774975518>', reply=True)
+            return await ctx.message.respond(
+                "Ты не в ГК <:9380fuminodepression3:1027509992774975518>", reply=True
+            )
         await reference_user.edit(voice_channel=author_state.channel_id)
         return await ctx.message.respond(
-            'Переместила <:5514kannasleep:1028186236990537749>',
-            reply=True
+            "Переместила <:5514kannasleep:1028186236990537749>", reply=True
         )
-    
-    if content == 'move all':
+
+    if content == "move all":
         pass
 
-    if content == 'mute all' or content == 'unmute all':
+    if content == "mute all" or content == "unmute all":
         roles = [k.id for k in ctx.member.get_roles()]
-        if cfg[cfg['mode']]['roles']['admin'] not in roles and\
-           cfg[cfg['mode']]['roles']['mod'] not in roles:
-           return
-        
+        if (
+            cfg[cfg["mode"]]["roles"]["admin"] not in roles
+            and cfg[cfg["mode"]]["roles"]["mod"] not in roles
+        ):
+            return
+
         voice = ctx.get_guild().get_voice_state(ctx.author_id)
         guild = plugin.bot.cache.get_guild(ctx.guild_id)
-        users = [v for v in guild.get_voice_states().values()
-                if v.channel_id == voice.channel_id and v.user_id != voice.user_id]
+        users = [
+            v
+            for v in guild.get_voice_states().values()
+            if v.channel_id == voice.channel_id and v.user_id != voice.user_id
+        ]
 
-        if content == 'mute all':
+        if content == "mute all":
             for v in users:
                 asyncio.create_task(v.member.edit(mute=True))
         else:

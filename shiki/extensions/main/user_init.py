@@ -33,71 +33,77 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("UserInit")
-_LOG = logging.getLogger('extensions.main.user_init')
+_LOG = logging.getLogger("extensions.main.user_init")
 
 
 @plugin.listener(hikari.ShardReadyEvent)
 async def ready_listener(_):
-    async for member in plugin.bot.rest.fetch_members(cfg[cfg['mode']]['guild']):
+    async for member in plugin.bot.rest.fetch_members(cfg[cfg["mode"]]["guild"]):
         if member.is_bot:
             continue
-        data = db.find_document(users, {'_id': member.id})
+        data = db.find_document(users, {"_id": member.id})
         if data is None:
-            _LOG.warning(
-                f'creating user document of user {member.id} ({member})')
-            db.insert_document(
-                users, {'_id': member.id, **cfg['db_defaults']['users']})
+            _LOG.warning(f"creating user document of user {member.id} ({member})")
+            db.insert_document(users, {"_id": member.id, **cfg["db_defaults"]["users"]})
         else:
-            for key in cfg['db_defaults']['users'].keys():
+            for key in cfg["db_defaults"]["users"].keys():
                 if key not in data:
                     _LOG.warning(
-                        'missing key "%s" in stats document of user %s (%s)' % (key, str(member), str(member.id)))
-                    db.update_document(users, {'_id': member.id}, {
-                                       key: cfg['db_defaults']['users'][key]})
-        data = db.find_document(stats, {'_id': member.id})
+                        'missing key "%s" in stats document of user %s (%s)'
+                        % (key, str(member), str(member.id))
+                    )
+                    db.update_document(
+                        users,
+                        {"_id": member.id},
+                        {key: cfg["db_defaults"]["users"][key]},
+                    )
+        data = db.find_document(stats, {"_id": member.id})
         if data is None:
-            _LOG.warning(
-                f'creating stats document of user {member.id} ({member})')
-            db.insert_document(
-                stats, {'_id': member.id, **cfg['db_defaults']['stats']})
+            _LOG.warning(f"creating stats document of user {member.id} ({member})")
+            db.insert_document(stats, {"_id": member.id, **cfg["db_defaults"]["stats"]})
         else:
-            for key in cfg['db_defaults']['stats'].keys():
+            for key in cfg["db_defaults"]["stats"].keys():
                 if key not in data:
                     _LOG.warning(
-                        'missing key "%s" in stats document of user %s (%s)' % (key, str(member), str(member.id)))
-                    db.update_document(stats, {'_id': member.id}, {
-                                       key: cfg['db_defaults']['stats'][key]})
+                        'missing key "%s" in stats document of user %s (%s)'
+                        % (key, str(member), str(member.id))
+                    )
+                    db.update_document(
+                        stats,
+                        {"_id": member.id},
+                        {key: cfg["db_defaults"]["stats"][key]},
+                    )
 
 
 @plugin.listener(hikari.MemberCreateEvent)
 async def member_join(event: hikari.MemberCreateEvent):
-    if event.member.guild_id != cfg[cfg['mode']]['guild']:
+    if event.member.guild_id != cfg[cfg["mode"]]["guild"]:
         return
 
-    if db.find_document(users, {'_id': event.member.id}) is None:
+    if db.find_document(users, {"_id": event.member.id}) is None:
         db.insert_document(
-            users, {'_id': event.member.id, **cfg['db_defaults']['users']})
+            users, {"_id": event.member.id, **cfg["db_defaults"]["users"]}
+        )
         db.insert_document(
-            stats, {'_id': event.member.id, **cfg['db_defaults']['stats']})
-        await event.member.get_guild()\
-            .get_channel(cfg[cfg['mode']]['channels']['mods_only'])\
-            .send(f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {event.member} (<@{event.member.id}>)')
+            stats, {"_id": event.member.id, **cfg["db_defaults"]["stats"]}
+        )
+        await event.member.get_guild().get_channel(
+            cfg[cfg["mode"]]["channels"]["mods_only"]
+        ).send(
+            f'<@&{cfg[cfg["mode"]]["roles"]["mod"]}> {event.member} (<@{event.member.id}>)'
+        )
         return
 
     # User re-joined
-    await tools.grant_achievement(event.user, '4')
-    await event.member.add_role(
-        cfg[cfg['mode']]['roles']['verify']
-    )
-    await event.member.get_guild()\
-        .get_channel(cfg[cfg['mode']]['channels']['general'])\
-        .send(f"С возвращением на наш сервер, %s! :>" % (
-            event.member.mention
-        ))
+    await tools.grant_achievement(event.user, "4")
+    await event.member.add_role(cfg[cfg["mode"]]["roles"]["verify"])
+    await event.member.get_guild().get_channel(
+        cfg[cfg["mode"]]["channels"]["general"]
+    ).send(f"С возвращением на наш сервер, %s! :>" % (event.member.mention))
 
 
 def load(bot):
