@@ -34,17 +34,13 @@ from .ui import control
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("LobbiesCommands")
 
 
 @plugin.command
-@lightbulb.command(
-    'lobby',
-    'Команды связанные с системой лобби',
-    auto_defer=True
-)
+@lightbulb.command("lobby", "Команды связанные с системой лобби", auto_defer=True)
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def lobby(ctx: lightbulb.SlashContext):
     # Command group /lobby
@@ -53,32 +49,25 @@ async def lobby(ctx: lightbulb.SlashContext):
 
 @lobby.child
 @lightbulb.option(
-    'info',
-    'Информация о комнате',
-    str,
-    required=False,
-    default='Нет информации'
+    "info", "Информация о комнате", str, required=False, default="Нет информации"
 )
 @lightbulb.option(
-    'auto_move',
-    'Включение автоматического переноса в ГК',
+    "auto_move",
+    "Включение автоматического переноса в ГК",
     str,
     required=False,
-    choices=['вкл.', 'выкл.'],
-    default=False
+    choices=["вкл.", "выкл."],
+    default=False,
 )
-@lightbulb.command(
-    'create',
-    'Создать новое лобби'
-)
+@lightbulb.command("create", "Создать новое лобби")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def create(ctx: lightbulb.SlashContext):
-    data = db.find_document(users, {'_id': ctx.user.id})
-    if len(data['lobbies']) < 2:
+    data = db.find_document(users, {"_id": ctx.user.id})
+    if len(data["lobbies"]) < 2:
         channel = await plugin.bot.rest.create_guild_voice_channel(
             ctx.guild_id,
             str(ctx.user),
-            category=cfg[cfg['mode']]['categories']['lobbies'],
+            category=cfg[cfg["mode"]]["categories"]["lobbies"],
             permission_overwrites=[
                 hikari.PermissionOverwrite(
                     id=ctx.user.id,
@@ -87,76 +76,81 @@ async def create(ctx: lightbulb.SlashContext):
                         hikari.Permissions.VIEW_CHANNEL
                         | hikari.Permissions.DEAFEN_MEMBERS
                         | hikari.Permissions.MUTE_MEMBERS
-                    )
+                    ),
                 ),
                 hikari.PermissionOverwrite(
                     id=ctx.guild_id,
                     type=hikari.PermissionOverwriteType.ROLE,
-                    deny=(
-                        hikari.Permissions.VIEW_CHANNEL
-                    )
-                )
+                    deny=(hikari.Permissions.VIEW_CHANNEL),
+                ),
             ],
         )
 
         embed = hikari.Embed(
-            title='Лобби пользователя %s' % str(ctx.user),
-            description=ctx.options.info or 'нет описания',
-            color=shiki.Colors.SUCCESS
+            title="Лобби пользователя %s" % str(ctx.user),
+            description=ctx.options.info or "нет описания",
+            color=shiki.Colors.SUCCESS,
         )
         embed.set_thumbnail(ctx.user.display_avatar_url.url)
-        embed.set_footer('/lobby control для управления лобби')
+        embed.set_footer("/lobby control для управления лобби")
         await channel.send(embed=embed)
-        if ctx.options.auto_move == 'вкл.':
+        if ctx.options.auto_move == "вкл.":
             voice = ctx.get_guild().get_voice_state(ctx.user)
             if voice is None:
-                await ctx.respond(embed=hikari.Embed(
-                    title='Канал создан',
-                    description='Вас неудалось переместить в канал <#%s>' % channel.id,
-                    color=shiki.Colors.SUCCESS
-                ))
+                await ctx.respond(
+                    embed=hikari.Embed(
+                        title="Канал создан",
+                        description="Вас неудалось переместить в канал <#%s>"
+                        % channel.id,
+                        color=shiki.Colors.SUCCESS,
+                    )
+                )
                 return
             await ctx.member.edit(voice_channel=channel)
-            await ctx.respond(embed=hikari.Embed(
-                title='Канал создан',
-                description='Вы перемещены в канал <#%s>' % channel.id,
-                color=shiki.Colors.SUCCESS
-            ))
+            await ctx.respond(
+                embed=hikari.Embed(
+                    title="Канал создан",
+                    description="Вы перемещены в канал <#%s>" % channel.id,
+                    color=shiki.Colors.SUCCESS,
+                )
+            )
         else:
-            await ctx.respond(embed=hikari.Embed(
-                title='Канал создан',
-                description='Вы можете зайти в канал <#%s> и использовать команду /lobby control для изменения параметров' % channel.id,
-                color=shiki.Colors.SUCCESS
-            ))
-        data['lobbies'].append(channel.id)
-        db.update_document(users, {'_id': ctx.user.id}, {
-                           'lobbies': data['lobbies']})
+            await ctx.respond(
+                embed=hikari.Embed(
+                    title="Канал создан",
+                    description="Вы можете зайти в канал <#%s> и использовать команду /lobby control для изменения параметров"
+                    % channel.id,
+                    color=shiki.Colors.SUCCESS,
+                )
+            )
+        data["lobbies"].append(channel.id)
+        db.update_document(users, {"_id": ctx.user.id}, {"lobbies": data["lobbies"]})
         return
 
-    await ctx.respond(embed=hikari.Embed(
-        title='Слишком много лобби',
-        description='Попробуйте удалить некоторые свои лобби чтобы создать новые (лимит - 2)',
-        color=shiki.Colors.ERROR
-    ))
+    await ctx.respond(
+        embed=hikari.Embed(
+            title="Слишком много лобби",
+            description="Попробуйте удалить некоторые свои лобби чтобы создать новые (лимит - 2)",
+            color=shiki.Colors.ERROR,
+        )
+    )
 
 
 async def owner_check(ctx: lightbulb.SlashContext):
-    if ctx.channel_id not in db.find_document(users, {'_id': ctx.user.id})['lobbies']:
-        await ctx.respond(embed=hikari.Embed(
-            title='Вы не владелец лобби',
-            description='Эту команду может использовать только владелец лобби',
-            color=shiki.Colors.ERROR
-        ))
+    if ctx.channel_id not in db.find_document(users, {"_id": ctx.user.id})["lobbies"]:
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Вы не владелец лобби",
+                description="Эту команду может использовать только владелец лобби",
+                color=shiki.Colors.ERROR,
+            )
+        )
         return False
     return True
 
 
 @lobby.child
-@lightbulb.command(
-    'control',
-    'Управление лобби',
-    ephemeral=True
-)
+@lightbulb.command("control", "Управление лобби", ephemeral=True)
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def create(ctx: lightbulb.SlashContext):
     if not await owner_check(ctx):
@@ -164,94 +158,93 @@ async def create(ctx: lightbulb.SlashContext):
     view = control.ControlView(ctx.user.id, timeout=300)
     msg = await ctx.respond(
         embed=hikari.Embed(
-            title='Панель управления',
-            description='К этой панели имеете доступ только вы. Используйте команду /lobby add чтобы добавить новых пользователей в лобби',
-            color=shiki.Colors.SUCCESS),
-        components=view
+            title="Панель управления",
+            description="К этой панели имеете доступ только вы. Используйте команду /lobby add чтобы добавить новых пользователей в лобби",
+            color=shiki.Colors.SUCCESS,
+        ),
+        components=view,
     )
     await view.start(await msg.message())
 
 
 @lobby.child
 @lightbulb.option(
-    'user',
-    'Пользователь которого вы хотите добавить в лобби',
+    "user",
+    "Пользователь которого вы хотите добавить в лобби",
     hikari.Member,
-    required=True
+    required=True,
 )
-@lightbulb.command(
-    'add',
-    'Добавить пользователя в лобби'
-)
+@lightbulb.command("add", "Добавить пользователя в лобби")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def add(ctx: lightbulb.SlashContext):
     if not await owner_check(ctx):
         return
 
     if ctx.user.id == ctx.options.user.id:
-        await ctx.respond(embed=hikari.Embed(
-            title='Действие отменено',
-            description='Вы не можете добавить самого себя в лобби',
-            color=shiki.Colors.ERROR
-        ))
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Действие отменено",
+                description="Вы не можете добавить самого себя в лобби",
+                color=shiki.Colors.ERROR,
+            )
+        )
         return
-    
+
     await plugin.bot.rest.edit_permission_overwrite(
-        ctx.channel_id,
-        ctx.options.user,
-        allow=hikari.Permissions.VIEW_CHANNEL
+        ctx.channel_id, ctx.options.user, allow=hikari.Permissions.VIEW_CHANNEL
     )
-    await ctx.respond(embed=hikari.Embed(
-        title='Пользователь добавлен',
-        description='Теперь пользователь сможет присоединиться к вам в голосовой канал',
-        color=shiki.Colors.SUCCESS
-    ))
+    await ctx.respond(
+        embed=hikari.Embed(
+            title="Пользователь добавлен",
+            description="Теперь пользователь сможет присоединиться к вам в голосовой канал",
+            color=shiki.Colors.SUCCESS,
+        )
+    )
 
     perms = ctx.get_channel().permission_overwrites
-    added_users = len([
-        0 for u in perms
-        if perms[u].allow.all(hikari.Permissions.VIEW_CHANNEL)
-    ]) - 1
+    added_users = (
+        len([0 for u in perms if perms[u].allow.all(hikari.Permissions.VIEW_CHANNEL)])
+        - 1
+    )
     if added_users == 1:
-        await tools.grant_achievement(ctx.user, '47')
+        await tools.grant_achievement(ctx.user, "47")
     if added_users == 10:
-        await tools.grant_achievement(ctx.user, '48')
+        await tools.grant_achievement(ctx.user, "48")
 
 
 @lobby.child
 @lightbulb.option(
-    'user',
-    'Пользователь которого вы хотите убрать из лобби',
+    "user",
+    "Пользователь которого вы хотите убрать из лобби",
     hikari.Member,
-    required=True
+    required=True,
 )
-@lightbulb.command(
-    'remove',
-    'Убрать пользователя из лобби'
-)
+@lightbulb.command("remove", "Убрать пользователя из лобби")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def remove(ctx: lightbulb.SlashContext):
     if not await owner_check(ctx):
         return
 
     if ctx.user.id == ctx.options.user.id:
-        await ctx.respond(embed=hikari.Embed(
-            title='Действие отменено',
-            description='Вы не можете убрать самого себя из лобби',
-            color=shiki.Colors.ERROR
-        ))
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Действие отменено",
+                description="Вы не можете убрать самого себя из лобби",
+                color=shiki.Colors.ERROR,
+            )
+        )
         return
 
     await plugin.bot.rest.edit_permission_overwrite(
-        ctx.channel_id,
-        ctx.options.user,
-        deny=hikari.Permissions.VIEW_CHANNEL
+        ctx.channel_id, ctx.options.user, deny=hikari.Permissions.VIEW_CHANNEL
     )
-    await ctx.respond(embed=hikari.Embed(
-        title='Пользователь убран',
-        description='Пользователь будет выгнан из голосового канала',
-        color=shiki.Colors.SUCCESS
-    ))
+    await ctx.respond(
+        embed=hikari.Embed(
+            title="Пользователь убран",
+            description="Пользователь будет выгнан из голосового канала",
+            color=shiki.Colors.SUCCESS,
+        )
+    )
     voice = ctx.get_guild().get_voice_state(ctx.options.user)
     if voice is not None and voice.channel_id == ctx.channel_id:
         await ctx.options.user.edit(voice_channel=None)

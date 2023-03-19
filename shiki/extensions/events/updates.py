@@ -38,8 +38,8 @@ import aiohttp
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("EventsUpdates")
 local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 
@@ -47,83 +47,104 @@ local_tz = datetime.now(timezone.utc).astimezone().tzinfo
 @plugin.listener(hikari.ScheduledEventUpdateEvent)
 async def update_listener(event: hikari.ScheduledEventUpdateEvent):
     e = event.event
-    data = tools.load_data('./data/events')
+    data = tools.load_data("./data/events")
     if str(e.id) not in data:
         return
 
-    if e.status == hikari.ScheduledEventStatus.ACTIVE and not data[str(e.id)]['started']:
-        await plugin.bot.update_voice_state(e.guild_id, data[str(e.id)]['channel'])
-        data[str(e.id)]['started'] = True
+    if (
+        e.status == hikari.ScheduledEventStatus.ACTIVE
+        and not data[str(e.id)]["started"]
+    ):
+        await plugin.bot.update_voice_state(e.guild_id, data[str(e.id)]["channel"])
+        data[str(e.id)]["started"] = True
         async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
-            async with s.get('/sfw/smile') as resp:
+            async with s.get("/sfw/smile") as resp:
                 if resp.status != 200:
                     image_url = None
                 else:
-                    image_url = (await resp.json())['url']
+                    image_url = (await resp.json())["url"]
         embed = hikari.Embed(
-            title='Ивент %s начался' % e.name,
-            description='Ивент начался! Скорее [присоединяйтесь](%s) в ГК с ведущим' % data[str(
-                e.id)]['link'],
+            title="Ивент %s начался" % e.name,
+            description="Ивент начался! Скорее [присоединяйтесь](%s) в ГК с ведущим"
+            % data[str(e.id)]["link"],
             color=shiki.Colors.ANC_HIGH,
-            timestamp=datetime.now(local_tz)
+            timestamp=datetime.now(local_tz),
         )
-        embed.set_footer('Автоматическое сообщение',
-                         icon=plugin.bot.get_me().display_avatar_url.url)
+        embed.set_footer(
+            "Автоматическое сообщение", icon=plugin.bot.get_me().display_avatar_url.url
+        )
         embed.set_image(image_url)
-        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '<&@{}>'.format(cfg[cfg['mode']]['roles']['ping:events']), embed=embed, role_mentions=True)
-        tools.update_data('./data/events', data)
+        await plugin.bot.rest.create_message(
+            cfg[cfg["mode"]]["channels"]["announcements"],
+            "<&@{}>".format(cfg[cfg["mode"]]["roles"]["ping:events"]),
+            embed=embed,
+            role_mentions=True,
+        )
+        tools.update_data("./data/events", data)
         return
 
     if e.status == hikari.ScheduledEventStatus.COMPLETED:
-        host = await event.app.rest.fetch_user(data[str(e.id)]['host'])
-        await tools.grant_achievement(host, '41')
+        host = await event.app.rest.fetch_user(data[str(e.id)]["host"])
+        await tools.grant_achievement(host, "41")
         await plugin.bot.update_voice_state(e.guild_id, None)
         guild = plugin.bot.cache.get_guild(e.guild_id)
-        users = [v for v in guild.get_voice_states().values()
-                if v.channel_id == data[str(e.id)]['channel']]
+        users = [
+            v
+            for v in guild.get_voice_states().values()
+            if v.channel_id == data[str(e.id)]["channel"]
+        ]
         for u in users:
-            asyncio.create_task(tools.grant_achievement(u, '43'))
+            asyncio.create_task(tools.grant_achievement(u, "43"))
         data.pop(str(event.event.id))
-        tools.update_data('./data/events', data)
+        tools.update_data("./data/events", data)
         async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
-            async with s.get('/sfw/wave') as resp:
+            async with s.get("/sfw/wave") as resp:
                 if resp.status != 200:
                     image_url = None
                 else:
-                    image_url = (await resp.json())['url']
+                    image_url = (await resp.json())["url"]
         embed = hikari.Embed(
-            title='Ивент %s завершён' % e.name,
-            description='Спасибо всем за игру! Вы можете оставить свой отзыв об ивенте в [специальной форме](https://forms.gle/bVt1NDJTJYUm9n5V8)',
+            title="Ивент %s завершён" % e.name,
+            description="Спасибо всем за игру! Вы можете оставить свой отзыв об ивенте в [специальной форме](https://forms.gle/bVt1NDJTJYUm9n5V8)",
             color=shiki.Colors.ANC_LOW,
-            timestamp=datetime.now(local_tz)
+            timestamp=datetime.now(local_tz),
         )
-        embed.set_footer('Автоматическое сообщение',
-                         icon=plugin.bot.get_me().display_avatar_url.url)
+        embed.set_footer(
+            "Автоматическое сообщение", icon=plugin.bot.get_me().display_avatar_url.url
+        )
         embed.set_image(image_url)
-        await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], embed=embed)
-        tools.update_data('./data/events', data)
+        await plugin.bot.rest.create_message(
+            cfg[cfg["mode"]]["channels"]["announcements"], embed=embed
+        )
+        tools.update_data("./data/events", data)
         return
 
-    data[str(e.id)]['date'] = e.start_time.astimezone(zoneinfo.ZoneInfo('Europe/Moscow')).replace(
-        second=0, microsecond=0).strftime(cfg['time_format'])
-    data[str(e.id)]['title'] = e.name
+    data[str(e.id)]["date"] = (
+        e.start_time.astimezone(zoneinfo.ZoneInfo("Europe/Moscow"))
+        .replace(second=0, microsecond=0)
+        .strftime(cfg["time_format"])
+    )
+    data[str(e.id)]["title"] = e.name
 
-    tools.update_data('./data/events', data)
+    tools.update_data("./data/events", data)
 
-    await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['mods_only'], embed=hikari.Embed(
-        title='Ивент обновлён',
-        description='Ивент %s обновлён. Время начала: %s' % (
-            e.name, data[str(e.id)]['date']),
-        color=shiki.Colors.WARNING,
-        timestamp=datetime.now(local_tz)
-    ))
+    await plugin.bot.rest.create_message(
+        cfg[cfg["mode"]]["channels"]["mods_only"],
+        embed=hikari.Embed(
+            title="Ивент обновлён",
+            description="Ивент %s обновлён. Время начала: %s"
+            % (e.name, data[str(e.id)]["date"]),
+            color=shiki.Colors.WARNING,
+            timestamp=datetime.now(local_tz),
+        ),
+    )
 
 
 @plugin.listener(hikari.ScheduledEventDeleteEvent)
 async def delete_listener(event: hikari.ScheduledEventDeleteEvent):
-    data = tools.load_data('./data/events')
+    data = tools.load_data("./data/events")
     data.pop(str(event.event.id))
-    tools.update_data('./data/events', data)
+    tools.update_data("./data/events", data)
 
 
 @plugin.listener(hikari.ShardReadyEvent)
@@ -133,48 +154,57 @@ async def start_loop(_):
 
 async def event_reminders() -> None:
     while plugin.bot.is_alive:
-        data = tools.load_data('./data/events')
-        now = datetime.now().astimezone(zoneinfo.ZoneInfo(
-            'Europe/Moscow')).replace(second=0, microsecond=0, tzinfo=None)
+        data = tools.load_data("./data/events")
+        now = (
+            datetime.now()
+            .astimezone(zoneinfo.ZoneInfo("Europe/Moscow"))
+            .replace(second=0, microsecond=0, tzinfo=None)
+        )
         for id in data:
-            date = datetime.strptime(data[id]['date'], cfg['time_format'])
+            date = datetime.strptime(data[id]["date"], cfg["time_format"])
 
             # 10 minutes
             if now == date - timedelta(minutes=10):
                 await plugin.bot.rest.create_message(
-                    cfg[cfg['mode']]['channels']['mods_only'],
-                    '<@%s>, ивент %s начнётся через 10 минут' % (
-                        data[id]['host'], data[id]['title'])
+                    cfg[cfg["mode"]]["channels"]["mods_only"],
+                    "<@%s>, ивент %s начнётся через 10 минут"
+                    % (data[id]["host"], data[id]["title"]),
                 )
 
             # 5 minutes
             elif now == date - timedelta(minutes=5):
                 # mods-only
                 await plugin.bot.rest.create_message(
-                    cfg[cfg['mode']]['channels']['mods_only'],
-                    '<@%s>, ивент %s начнётся через 5 минут' % (
-                        data[id]['host'], data[id]['title']),
-                    user_mentions=True
+                    cfg[cfg["mode"]]["channels"]["mods_only"],
+                    "<@%s>, ивент %s начнётся через 5 минут"
+                    % (data[id]["host"], data[id]["title"]),
+                    user_mentions=True,
                 )
 
                 # announcements
                 async with aiohttp.ClientSession(shiki.WAIFUPICS) as s:
-                    async with s.get('/sfw/smile') as resp:
+                    async with s.get("/sfw/smile") as resp:
                         if resp.status != 200:
                             image_url = None
                         else:
-                            image_url = (await resp.json())['url']
+                            image_url = (await resp.json())["url"]
                 embed = hikari.Embed(
-                    title='Ивент %s скоро начнётся' % data[id]['title'],
-                    description='Ивент начнётся через 5 минут! [Информация](%s)' % data[
-                        id]['link'],
+                    title="Ивент %s скоро начнётся" % data[id]["title"],
+                    description="Ивент начнётся через 5 минут! [Информация](%s)"
+                    % data[id]["link"],
                     color=shiki.Colors.ANC_LOW,
-                    timestamp=datetime.now(local_tz)
+                    timestamp=datetime.now(local_tz),
                 )
-                embed.set_footer('Автоматическое сообщение',
-                                 icon=plugin.bot.get_me().display_avatar_url.url)
+                embed.set_footer(
+                    "Автоматическое сообщение",
+                    icon=plugin.bot.get_me().display_avatar_url.url,
+                )
                 embed.set_image(image_url)
-                await plugin.bot.rest.create_message(cfg[cfg['mode']]['channels']['announcements'], '<&@{}>'.format(cfg[cfg['mode']]['roles']['ping:events']), embed=embed)
+                await plugin.bot.rest.create_message(
+                    cfg[cfg["mode"]]["channels"]["announcements"],
+                    "<&@{}>".format(cfg[cfg["mode"]]["roles"]["ping:events"]),
+                    embed=embed,
+                )
 
         await asyncio.sleep(60)
 

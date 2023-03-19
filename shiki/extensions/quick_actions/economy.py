@@ -32,27 +32,30 @@ from shiki.utils import db, tools, embeds
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("QuickEconomy")
-emoji_denied = cfg['emojis']['access_denied']
+emoji_denied = cfg["emojis"]["access_denied"]
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
-    if ctx.author.is_bot: return
-    if ctx.content == None: return
+    if ctx.author.is_bot:
+        return
+    if ctx.content == None:
+        return
     raw_content = ctx.content.lower()
-    if not raw_content.startswith('шики'): return
+    if not raw_content.startswith("шики"):
+        return
     content = tools.fetch_content(raw_content)
-    
+
     reference_user = ctx.message.message_reference
     if reference_user != None:
         reference_id = ctx.message.message_reference.id
         reference_message = await ctx.get_channel().fetch_message(reference_id)
         reference_user = reference_message.author
-    
-    if content == 'profile':
+
+    if content == "profile":
         if reference_user == None:
             user = ctx.author
         else:

@@ -38,80 +38,93 @@ from dotenv import load_dotenv
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("QiwiDonate")
-_auth_key = os.environ['qiwi_auth_key']
+_auth_key = os.environ["qiwi_auth_key"]
 
 
 @plugin.command
 @lightbulb.option(
-    'amount',
-    'Сумма которую собираете пожертвовать (в рублях)',
+    "amount",
+    "Сумма которую собираете пожертвовать (в рублях)",
     int,
     required=True,
-    min_value=1
+    min_value=1,
 )
-@lightbulb.command(
-    'donate',
-    'Пожертвовать нам денег',
-    auto_defer=True,
-    ephemeral=True
-)
+@lightbulb.command("donate", "Пожертвовать нам денег", auto_defer=True, ephemeral=True)
 @lightbulb.implements(lightbulb.SlashCommand)
 async def donate(ctx: lightbulb.SlashContext):
     async with AioQiwiP2P(auth_key=_auth_key) as p2p:
-        bill = await p2p.bill(amount=ctx.options.amount, comment='Пожертвование от %s (Shikimori 2.0)' % str(ctx.user), lifetime=5)
-        await ctx.respond(embed=hikari.Embed(
-            title='Пожертвовать %s рублей' % ctx.options.amount,
-            description='Нажмите на надпись выше чтобы оплатить счёт! Каждая копейка нам очень поможет!',
-            color=shiki.Colors.WAIT,
-            url=bill.pay_url
-        ))
+        bill = await p2p.bill(
+            amount=ctx.options.amount,
+            comment="Пожертвование от %s (Shikimori 2.0)" % str(ctx.user),
+            lifetime=5,
+        )
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Пожертвовать %s рублей" % ctx.options.amount,
+                description="Нажмите на надпись выше чтобы оплатить счёт! Каждая копейка нам очень поможет!",
+                color=shiki.Colors.WAIT,
+                url=bill.pay_url,
+            )
+        )
         while True:
             await asyncio.sleep(4)
             u = await p2p.check(bill.bill_id)
 
-            if u.status == 'WAITING':
+            if u.status == "WAITING":
                 continue
 
-            if u.status == 'PAID':
-                asyncio.create_task(tools.grant_achievement(ctx.user, '11'))
-                await ctx.respond(embed=hikari.Embed(
-                    title='Спасибо большое ♡',
-                    description='Пожертвование в %s рублей засчитано!' % ctx.options.amount,
-                    color=shiki.Colors.SPONSOR
-                ).set_author(name=str(ctx.user), icon=ctx.user.display_avatar_url.url))
-                donated = db.find_document(users, {'_id': ctx.user.id})['donated'] + ctx.options.amount
-                db.update_document(users, {'_id': ctx.user.id}, {'donated': donated})
-                await plugin.bot.rest.create_message(
-                    cfg[cfg['mode']]['channels']['log'],
+            if u.status == "PAID":
+                asyncio.create_task(tools.grant_achievement(ctx.user, "11"))
+                await ctx.respond(
                     embed=hikari.Embed(
-                        title='Пожертвование от %s' % ctx.author,
-                        description='%s, спасибо большое за пожертвование в ***%s*** рублей ❤️❤️ В сумме этот пользователю пожертвовал нам ***%s*** рублей!' % (
-                            ctx.author.mention, ctx.options.amount, donated
-                        ),
-                        color=shiki.Colors.SPONSOR
-                    ).set_footer(str(ctx.author), icon=ctx.author.display_avatar_url.url)
+                        title="Спасибо большое ♡",
+                        description="Пожертвование в %s рублей засчитано!"
+                        % ctx.options.amount,
+                        color=shiki.Colors.SPONSOR,
+                    ).set_author(
+                        name=str(ctx.user), icon=ctx.user.display_avatar_url.url
+                    )
+                )
+                donated = (
+                    db.find_document(users, {"_id": ctx.user.id})["donated"]
+                    + ctx.options.amount
+                )
+                db.update_document(users, {"_id": ctx.user.id}, {"donated": donated})
+                await plugin.bot.rest.create_message(
+                    cfg[cfg["mode"]]["channels"]["log"],
+                    embed=hikari.Embed(
+                        title="Пожертвование от %s" % ctx.author,
+                        description="%s, спасибо большое за пожертвование в ***%s*** рублей ❤️❤️ В сумме этот пользователю пожертвовал нам ***%s*** рублей!"
+                        % (ctx.author.mention, ctx.options.amount, donated),
+                        color=shiki.Colors.SPONSOR,
+                    ).set_footer(
+                        str(ctx.author), icon=ctx.author.display_avatar_url.url
+                    ),
                 )
                 if donated >= 150:
                     try:
                         await plugin.bot.rest.add_role_to_member(
                             ctx.guild_id,
                             ctx.author.id,
-                            cfg[cfg['mode']]['roles']['donator']
+                            cfg[cfg["mode"]]["roles"]["donator"],
                         )
                     except hikari.ForbiddenError:
                         # Raises only if ctx.author is server owner
                         pass
                 return
 
-            if u.status in ['REJECTED', 'EXPIRED']:
-                await ctx.edit_last_response(embed=hikari.Embed(
-                    title='Платёж не удался',
-                    description='Платёж был отклонён или просрочен. Пожалуйста попробуйте ещё раз использовать команду /donate amount:%s' % ctx.options.amount,
-                    color=shiki.Colors.ERROR
-                ))
+            if u.status in ["REJECTED", "EXPIRED"]:
+                await ctx.edit_last_response(
+                    embed=hikari.Embed(
+                        title="Платёж не удался",
+                        description="Платёж был отклонён или просрочен. Пожалуйста попробуйте ещё раз использовать команду /donate amount:%s"
+                        % ctx.options.amount,
+                        color=shiki.Colors.ERROR,
+                    )
+                )
                 return
 
 

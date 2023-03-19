@@ -37,27 +37,30 @@ import logging
 import miru
 
 
-cfg = tools.load_data('./settings/config')
-_LOG = logging.getLogger('core.bot')
+cfg = tools.load_data("./settings/config")
+_LOG = logging.getLogger("core.bot")
 
 dotenv.load_dotenv()
 bot = lightbulb.BotApp(
-    os.environ['test-token'] if cfg['mode'] == 'test' else os.environ['prod-token'],
+    os.environ["test-token"] if cfg["mode"] == "test" else os.environ["prod-token"],
     intents=hikari.Intents.ALL,
-    default_enabled_guilds=cfg[cfg['mode']]['guild'])
-if cfg['mode'] == 'test':
-    _LOG.warning('Bot is running in test mode!')
+    default_enabled_guilds=cfg[cfg["mode"]]["guild"],
+)
+if cfg["mode"] == "test":
+    _LOG.warning("Bot is running in test mode!")
 
-for folder in os.listdir('./shiki/extensions'):
-    for plugin in filter(lambda x: x.endswith('.py'), os.listdir('./shiki/extensions/%s' % folder)):
-        bot.load_extensions('shiki.extensions.%s.%s' % (folder, plugin[:-3]))
+for folder in os.listdir("./shiki/extensions"):
+    for plugin in filter(
+        lambda x: x.endswith(".py"), os.listdir("./shiki/extensions/%s" % folder)
+    ):
+        bot.load_extensions("shiki.extensions.%s.%s" % (folder, plugin[:-3]))
 
 
 def run() -> None:
-    if os.name != 'nt':
+    if os.name != "nt":
         import uvloop
 
         uvloop.install()
     tasks.load(bot)
     miru.install(bot)
-    bot.run(activity=hikari.Activity(name='github: Euphoverse/ShikimoriBot'))
+    bot.run(activity=hikari.Activity(name="github: Euphoverse/ShikimoriBot"))

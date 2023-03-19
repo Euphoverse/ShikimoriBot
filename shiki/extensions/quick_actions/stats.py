@@ -33,61 +33,72 @@ from shiki.utils import db, tools, embeds
 import os
 
 
-cfg = tools.load_data('./settings/config')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("QuickStats")
-emoji_denied = cfg['emojis']['access_denied']
+emoji_denied = cfg["emojis"]["access_denied"]
 
 
 @plugin.listener(hikari.GuildMessageCreateEvent)
 async def message_sent(ctx: hikari.GuildMessageCreateEvent):
-    if ctx.author.is_bot: return
-    if ctx.content == None: return
+    if ctx.author.is_bot:
+        return
+    if ctx.content == None:
+        return
     raw_content = ctx.content.lower()
-    if not raw_content.startswith('шики'): return
+    if not raw_content.startswith("шики"):
+        return
     content = tools.fetch_content(raw_content)
-    
+
     reference_user = ctx.message.message_reference
     if reference_user != None:
         reference_id = ctx.message.message_reference.id
         reference_message = await ctx.get_channel().fetch_message(reference_id)
         reference_user = reference_message.author
-    
-    if content == 'messages_total':
-        if reference_user == None:
-            user = ctx.author
-        else: 
-            user = reference_user
-        data = db.find_document(stats, {'_id': user.id})
-        if data == None:
-            return ctx.message.respond(embeds.user_not_found())
-        return await ctx.message.respond(f'{user.username} отправил {data["messages_total"]} сообщений за всё время!')
-    
-    if content == 'messages_today':
-        if reference_user == None:
-            user = ctx.author
-        else: 
-            user = reference_user
-        data = db.find_document(stats, {'_id': user.id})
-        if data == None:
-            return ctx.message.respond(embeds.user_not_found())
-        return await ctx.message.respond(f'{user.username} отправил {data["messages_today"]} сообщений за сегодня!')
 
-    if content == 'vc_hours':
+    if content == "messages_total":
         if reference_user == None:
             user = ctx.author
-        else: 
+        else:
             user = reference_user
-        data = db.find_document(stats, {'_id': user.id})
+        data = db.find_document(stats, {"_id": user.id})
         if data == None:
             return ctx.message.respond(embeds.user_not_found())
+        return await ctx.message.respond(
+            f'{user.username} отправил {data["messages_total"]} сообщений за всё время!'
+        )
+
+    if content == "messages_today":
+        if reference_user == None:
+            user = ctx.author
+        else:
+            user = reference_user
+        data = db.find_document(stats, {"_id": user.id})
+        if data == None:
+            return ctx.message.respond(embeds.user_not_found())
+        return await ctx.message.respond(
+            f'{user.username} отправил {data["messages_today"]} сообщений за сегодня!'
+        )
+
+    if content == "vc_hours":
+        if reference_user == None:
+            user = ctx.author
+        else:
+            user = reference_user
+        data = db.find_document(stats, {"_id": user.id})
+        if data == None:
+            return await ctx.message.respond(embeds.user_not_found())
         vc_time = data["time_in_vc"]
         hh = round(vc_time // 3600)
         mm = round((vc_time // 60) % 60)
         ss = round(vc_time % 60)
-        if(mm < 10): mm = f'0{mm}'
-        if(ss < 10): ss = f'0{ss}'
-        return await ctx.message.respond(f'{user.username} просидел ``{hh}:{mm}:{ss}`` в голосовых каналах!')
+        if mm < 10:
+            mm = f"0{mm}"
+        if ss < 10:
+            ss = f"0{ss}"
+        return await ctx.message.respond(
+            f"{user.username} просидел ``{hh}:{mm}:{ss}`` в голосовых каналах!"
+        )
 
 
 def load(bot):

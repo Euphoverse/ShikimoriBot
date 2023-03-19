@@ -33,31 +33,23 @@ import shiki
 import os
 
 
-cfg = tools.load_data('./settings/config')
-achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+achievements = tools.load_data("./settings/achievements")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("Achievements")
 
 
 @plugin.command
+@lightbulb.option("user", "Пользователь", type=hikari.User, required=False)
 @lightbulb.option(
-    'user',
-    'Пользователь',
-    type=hikari.User,
-    required=False
-)
-@lightbulb.option(
-    'type',
-    'Вид достижений',
+    "type",
+    "Вид достижений",
     type=str,
     required=True,
-    choices=['Полученные', 'Не полученные']
+    choices=["Полученные", "Не полученные"],
 )
-@lightbulb.command(
-    'achievements',
-    'Просмотреть ачивки'
-)
+@lightbulb.command("achievements", "Просмотреть ачивки")
 @lightbulb.implements(lightbulb.SlashCommand)
 async def view_achievemnts(ctx: lightbulb.SlashContext) -> None:
     user = ctx.options.user
@@ -65,48 +57,48 @@ async def view_achievemnts(ctx: lightbulb.SlashContext) -> None:
         user = ctx.author
     if user.is_bot:
         return await ctx.respond(embeds.user_is_bot())
-    data = db.find_document(users, {'_id': user.id})
+    data = db.find_document(users, {"_id": user.id})
     if data == None:
         return await ctx.respond(embeds.user_not_found())
-    
-    aches = data['achievements']
+
+    aches = data["achievements"]
     em = hikari.Embed(
-        title=f'Достижения {user.username}',
-        color=shiki.Colors.ACHIEVEMENT
+        title=f"Достижения {user.username}", color=shiki.Colors.ACHIEVEMENT
     )
 
     output_fields = []
-    output_field = ''
+    output_field = ""
     for index, ac in achievements.items():
         pref = "⚫"
-        title = ac['title']
+        title = ac["title"]
         desc = f'- {ac["description"]}'
-        add_field = ''
+        add_field = ""
         if index in aches:
             pref = "🟢"
-            if 'attributes' in ac and 'hidden' in ac['attributes']:
+            if "attributes" in ac and "hidden" in ac["attributes"]:
                 pref = "🟡"
-                desc = ''
+                desc = ""
             if ctx.options.type == "Полученные":
-                add_field = f'{pref}{title} {desc}\n'
+                add_field = f"{pref}{title} {desc}\n"
         else:
-            if 'attributes' in ac and 'hidden' in ac['attributes']: continue
+            if "attributes" in ac and "hidden" in ac["attributes"]:
+                continue
             if ctx.options.type == "Не полученные":
-                add_field = f'{pref}{title} {desc}\n'
+                add_field = f"{pref}{title} {desc}\n"
         if len(output_field) + len(add_field) > 1024:
             output_fields.append(output_field)
-            output_field = ''
+            output_field = ""
         output_field += add_field
-        
-    if output_field == '':
+
+    if output_field == "":
         output_field = "Достижений нет"
     output_fields.append(output_field)
     for index in range(len(output_fields)):
-        title = 'Продолжение'
-        if index == 0: title = 'Список достижений'
-        em.add_field(title, f'```{output_fields[index]}```')
+        title = "Продолжение"
+        if index == 0:
+            title = "Список достижений"
+        em.add_field(title, f"```{output_fields[index]}```")
     await ctx.respond(embed=em)
-        
 
 
 def load(bot):

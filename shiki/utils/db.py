@@ -32,9 +32,9 @@ import os
 
 
 dotenv.load_dotenv()
-_host = os.environ['mongo_host']
-_username = os.environ['mongo_username']
-_password = os.environ['mongo_password']
+_host = os.environ["mongo_host"]
+_username = os.environ["mongo_username"]
+_password = os.environ["mongo_password"]
 
 
 def connect():
@@ -62,10 +62,10 @@ def find_document(collection, elements, multiple=False):
 
 
 def update_document(collection, query_elements, new_values):
-    """ Function to update a single document in a collection."""
-    collection.update_one(query_elements, {'$set': new_values})
+    """Function to update a single document in a collection."""
+    collection.update_one(query_elements, {"$set": new_values})
 
 
 def delete_document(collection, query):
-    """ Function to delete a single document from a collection."""
+    """Function to delete a single document from a collection."""
     collection.delete_one(query)

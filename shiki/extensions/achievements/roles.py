@@ -32,10 +32,10 @@ from shiki.utils import db, tools
 import os
 
 
-cfg = tools.load_data('./settings/config')
-achievements = tools.load_data('./settings/achievements')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
-stats = db.connect().get_database(os.environ['db']).get_collection('stats')
+cfg = tools.load_data("./settings/config")
+achievements = tools.load_data("./settings/achievements")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
+stats = db.connect().get_database(os.environ["db"]).get_collection("stats")
 plugin = lightbulb.Plugin("AchieveRoles")
 
 
@@ -43,17 +43,18 @@ plugin = lightbulb.Plugin("AchieveRoles")
 async def update(ctx: hikari.MemberUpdateEvent):
     old_roles = ctx.old_member.role_ids
     new_roles = ctx.member.role_ids
-    if len(new_roles) <= len(old_roles): return
+    if len(new_roles) <= len(old_roles):
+        return
     added_role = [r for r in new_roles if r not in old_roles][0]
     # Server boost role
-    if added_role == cfg[cfg['mode']]['roles']['boost']:
-        await tools.grant_achievement(ctx.user, '25')
+    if added_role == cfg[cfg["mode"]]["roles"]["boost"]:
+        await tools.grant_achievement(ctx.user, "25")
         await tools.add_xp(ctx.user, 200)
 
     # Color roles
-    color_roles = cfg[cfg['mode']]['roles']['colors']
+    color_roles = cfg[cfg["mode"]]["roles"]["colors"]
     if added_role in color_roles:
-        await tools.grant_achievement(ctx.user, '42')
+        await tools.grant_achievement(ctx.user, "42")
 
 
 def load(bot):

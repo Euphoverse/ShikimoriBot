@@ -35,17 +35,13 @@ import shiki
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("Misc")
 
 
 @plugin.command
-@lightbulb.command(
-    'misc',
-    'Разные вспомогательные команды',
-    auto_defer=True
-)
+@lightbulb.command("misc", "Разные вспомогательные команды", auto_defer=True)
 @lightbulb.implements(lightbulb.SlashCommandGroup)
 async def misc(ctx: lightbulb.SlashContext) -> None:
     # Command group /misc
@@ -54,35 +50,34 @@ async def misc(ctx: lightbulb.SlashContext) -> None:
 
 @misc.child
 @lightbulb.option(
-    'sides',
-    'Количество граней',
-    type=int,
-    required=True,
-    min_value=2,
-    max_value=101
+    "sides", "Количество граней", type=int, required=True, min_value=2, max_value=101
 )
 @lightbulb.option(
-    'cubes',
-    'Количество кубиков',
+    "cubes",
+    "Количество кубиков",
     type=int,
     required=False,
     min_value=1,
     max_value=15,
-    default=1
+    default=1,
 )
-@lightbulb.command(
-    'dice',
-    'Кинуть кубики'
-)
+@lightbulb.command("dice", "Кинуть кубики")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def dice(ctx: lightbulb.SlashContext) -> None:
-    asyncio.create_task(tools.grant_achievement(ctx.author, '24'))
-    await ctx.respond(embed=hikari.Embed(
-        title='Кубики',
-        description='🎲 ' + ', '.join([str(random.randint(1, ctx.options.sides))
-                              for _ in range(ctx.options.cubes)]),
-        color=shiki.Colors.SUCCESS
-    ))
+    asyncio.create_task(tools.grant_achievement(ctx.author, "24"))
+    await ctx.respond(
+        embed=hikari.Embed(
+            title="Кубики",
+            description="🎲 "
+            + ", ".join(
+                [
+                    str(random.randint(1, ctx.options.sides))
+                    for _ in range(ctx.options.cubes)
+                ]
+            ),
+            color=shiki.Colors.SUCCESS,
+        )
+    )
 
 
 def load(bot):

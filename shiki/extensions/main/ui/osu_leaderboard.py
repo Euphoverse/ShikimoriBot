@@ -39,50 +39,54 @@ class Leaderboard(miru.View):
         Leaderboard.last_instance = self
         super().__init__(timeout=None, *args, **kwargs)
 
-
-    @miru.button(
-        label='Обновить',
-        style=hikari.ButtonStyle.SECONDARY,
-        emoji='🔄'
-    )
+    @miru.button(label="Обновить", style=hikari.ButtonStyle.SECONDARY, emoji="🔄")
     async def update_button(self, button: miru.Button, ctx: miru.ViewContext):
-        await ctx.respond(embed=hikari.Embed(
-            title='Обновляю',
-            description='Локальный топ будет скоро обновлён.',
-            color=shiki.Colors.WAIT
-        ), flags=hikari.MessageFlag.EPHEMERAL)
+        await ctx.respond(
+            embed=hikari.Embed(
+                title="Обновляю",
+                description="Локальный топ будет скоро обновлён.",
+                color=shiki.Colors.WAIT,
+            ),
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
         await update_leaderboard()
-    
+
 
 @tasks.task(m=5)
 async def auto_update():
     await update_leaderboard()
 
+
 async def update_leaderboard():
     board = Leaderboard.last_instance
-    async with aiohttp.ClientSession('https://api.euphoverse.moe') as s:
+    async with aiohttp.ClientSession("https://api.euphoverse.moe") as s:
         async with s.get(
-            '/admin/osu/leaderboard',
-            params={'guild': (await board.message.fetch_channel()).guild_id},
-            headers={'key': os.environ['api_key']}
+            "/admin/osu/leaderboard",
+            params={"guild": (await board.message.fetch_channel()).guild_id},
+            headers={"key": os.environ["api_key"]},
         ) as resp:
             r = resp
             json = await r.json()
 
     if r.status != 200:
-        board.message.embeds[-1].description = 'Siesta API {} Error (https://api.euphoverse.moe): {}'.format(
+        board.message.embeds[
+            -1
+        ].description = "Siesta API {} Error (https://api.euphoverse.moe): {}".format(
             r.status, (json)
         )
     else:
         res = []
-        for place, data in enumerate(json['data']):
-            res.append("**{}.** <@{}> ({}: {}pp {}% #{:,})".format(
-                place + 1, data['discord_id'],
-                data['osu_name'], round(data['pp']),
-                round(data['acc']), round(data['rank'])
-            ))
-        board.message.embeds[-1].description = '\n'.join(res)
-    
-    await board.message.edit(
-        embeds=board.message.embeds
-    )
+        for place, data in enumerate(json["data"]):
+            res.append(
+                "**{}.** <@{}> ({}: {}pp {}% #{:,})".format(
+                    place + 1,
+                    data["discord_id"],
+                    data["osu_name"],
+                    round(data["pp"]),
+                    round(data["acc"]),
+                    round(data["rank"]),
+                )
+            )
+        board.message.embeds[-1].description = "\n".join(res)
+
+    await board.message.edit(embeds=board.message.embeds)

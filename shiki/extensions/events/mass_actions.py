@@ -36,8 +36,8 @@ import shiki
 import os
 
 
-cfg = tools.load_data('./settings/config')
-users = db.connect().get_database(os.environ['db']).get_collection('users')
+cfg = tools.load_data("./settings/config")
+users = db.connect().get_database(os.environ["db"]).get_collection("users")
 plugin = lightbulb.Plugin("EventsMassActions")
 
 
@@ -48,14 +48,18 @@ async def member_update(event: hikari.VoiceStateUpdateEvent):
     voice = event.state
 
     try:
-        host = [e for e in tools.load_data('./data/events').values()
-                if e['started']][0]['host']
+        host = [e for e in tools.load_data("./data/events").values() if e["started"]][
+            0
+        ]["host"]
     except IndexError:
         host = 0
 
     guild = plugin.bot.cache.get_guild(event.guild_id)
-    users = [v for v in guild.get_voice_states().values()
-             if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]]
+    users = [
+        v
+        for v in guild.get_voice_states().values()
+        if v.channel_id == voice.channel_id and v.user_id not in [voice.user_id, host]
+    ]
 
     if voice.is_guild_muted:
         for v in users:
